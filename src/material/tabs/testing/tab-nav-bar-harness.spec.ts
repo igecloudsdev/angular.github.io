@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, signal} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {HarnessLoader} from '@angular/cdk/testing';
 import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
@@ -10,11 +10,10 @@ describe('MatTabNavBarHarness', () => {
   let fixture: ComponentFixture<TabNavBarHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatTabsModule, NoopAnimationsModule],
-      declarations: [TabNavBarHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatTabsModule, NoopAnimationsModule, TabNavBarHarnessTest],
+    });
 
     fixture = TestBed.createComponent(TabNavBarHarnessTest);
     fixture.detectChanges();
@@ -68,7 +67,7 @@ describe('MatTabNavBarHarness', () => {
     expect(await links[1].isDisabled()).toBe(false);
     expect(await links[2].isDisabled()).toBe(false);
 
-    fixture.componentInstance.isDisabled = true;
+    fixture.componentInstance.isDisabled.set(true);
     fixture.detectChanges();
 
     expect(await links[0].isDisabled()).toBe(false);
@@ -105,17 +104,18 @@ describe('MatTabNavBarHarness', () => {
         href="#"
         (click)="select(2, $event)"
         [active]="activeLink === 2"
-        [disabled]="isDisabled"
+        [disabled]="isDisabled()"
         matTabLink>Third</a>
     </nav>
     <mat-tab-nav-panel #tabPanel id="tab-panel">
       Tab content
     </mat-tab-nav-panel>
   `,
+  imports: [MatTabsModule],
 })
 class TabNavBarHarnessTest {
   activeLink = 0;
-  isDisabled = false;
+  isDisabled = signal(false);
 
   select(index: number, event: MouseEvent) {
     this.activeLink = index;

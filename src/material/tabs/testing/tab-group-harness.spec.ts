@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, signal} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {ComponentHarness, HarnessLoader, parallel} from '@angular/cdk/testing';
 import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
@@ -11,11 +11,10 @@ describe('MatTabGroupHarness', () => {
   let fixture: ComponentFixture<TabGroupHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatTabsModule, NoopAnimationsModule],
-      declarations: [TabGroupHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatTabsModule, NoopAnimationsModule, TabGroupHarnessTest],
+    });
 
     fixture = TestBed.createComponent(TabGroupHarnessTest);
     fixture.detectChanges();
@@ -111,7 +110,7 @@ describe('MatTabGroupHarness', () => {
     expect(await tabs[1].isDisabled()).toBe(false);
     expect(await tabs[2].isDisabled()).toBe(false);
 
-    fixture.componentInstance.isDisabled = true;
+    fixture.componentInstance.isDisabled.set(true);
     fixture.detectChanges();
 
     expect(await tabs[0].isDisabled()).toBe(false);
@@ -132,7 +131,7 @@ describe('MatTabGroupHarness', () => {
     expect(await tabs[2].isSelected()).toBe(false);
 
     // Should not be able to select third tab if disabled.
-    fixture.componentInstance.isDisabled = true;
+    fixture.componentInstance.isDisabled.set(true);
     fixture.detectChanges();
 
     await tabs[2].select();
@@ -141,7 +140,7 @@ describe('MatTabGroupHarness', () => {
     expect(await tabs[2].isSelected()).toBe(false);
 
     // Should be able to select third tab if not disabled.
-    fixture.componentInstance.isDisabled = false;
+    fixture.componentInstance.isDisabled.set(false);
     fixture.detectChanges();
     await tabs[2].select();
     expect(await tabs[0].isSelected()).toBe(false);
@@ -169,15 +168,16 @@ describe('MatTabGroupHarness', () => {
       <mat-tab label="Second" aria-label="Second tab">
         <span class="test-tab-content">Content 2</span>
       </mat-tab>
-      <mat-tab label="Third" aria-labelledby="tabLabelId" [disabled]="isDisabled">
+      <mat-tab label="Third" aria-labelledby="tabLabelId" [disabled]="isDisabled()">
         <ng-template matTabLabel>Third</ng-template>
         <span class="test-tab-content">Content 3</span>
       </mat-tab>
     </mat-tab-group>
   `,
+  imports: [MatTabsModule],
 })
 class TabGroupHarnessTest {
-  isDisabled = false;
+  isDisabled = signal(false);
 }
 
 class TestTabContentHarness extends ComponentHarness {

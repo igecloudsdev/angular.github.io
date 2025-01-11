@@ -5,8 +5,7 @@ import {MatSidenavModule} from '@angular/material/sidenav';
 @Component({
   selector: 'sidenav-drawer-overview-example',
   templateUrl: 'sidenav-drawer-overview-example.html',
-  styleUrls: ['sidenav-drawer-overview-example.css'],
-  standalone: true,
+  styleUrl: 'sidenav-drawer-overview-example.css',
   imports: [MatSidenavModule],
 })
 export class SidenavDrawerOverviewExample {}

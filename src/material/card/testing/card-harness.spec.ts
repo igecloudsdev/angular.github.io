@@ -9,11 +9,10 @@ describe('MatCardHarness', () => {
   let fixture: ComponentFixture<CardHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatCardModule],
-      declarations: [CardHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatCardModule, CardHarnessTest],
+    });
 
     fixture = TestBed.createComponent(CardHarnessTest);
     fixture.detectChanges();
@@ -124,6 +123,7 @@ describe('MatCardHarness', () => {
         </mat-card-footer>
       </mat-card>
   `,
+  imports: [MatCardModule],
 })
 class CardHarnessTest {}
 

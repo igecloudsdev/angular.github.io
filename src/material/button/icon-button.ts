@@ -3,20 +3,10 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Platform} from '@angular/cdk/platform';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  Inject,
-  NgZone,
-  Optional,
-  ViewEncapsulation,
-} from '@angular/core';
-import {ANIMATION_MODULE_TYPE} from '@angular/platform-browser/animations';
+import {ChangeDetectionStrategy, Component, ViewEncapsulation} from '@angular/core';
 import {MAT_ANCHOR_HOST, MAT_BUTTON_HOST, MatAnchorBase, MatButtonBase} from './button-base';
 
 /**
@@ -34,14 +24,10 @@ import {MAT_ANCHOR_HOST, MAT_BUTTON_HOST, MatAnchorBase, MatButtonBase} from './
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MatIconButton extends MatButtonBase {
-  constructor(
-    elementRef: ElementRef,
-    platform: Platform,
-    ngZone: NgZone,
-    @Optional() @Inject(ANIMATION_MODULE_TYPE) animationMode?: string,
-  ) {
-    super(elementRef, platform, ngZone, animationMode);
+  constructor(...args: unknown[]);
 
+  constructor() {
+    super();
     this._rippleLoader.configureRipple(this._elementRef.nativeElement, {centered: true});
   }
 }
@@ -53,20 +39,11 @@ export class MatIconButton extends MatButtonBase {
  */
 @Component({
   selector: `a[mat-icon-button]`,
-  templateUrl: 'button.html',
+  templateUrl: 'icon-button.html',
   styleUrls: ['icon-button.css', 'button-high-contrast.css'],
   host: MAT_ANCHOR_HOST,
   exportAs: 'matButton, matAnchor',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MatIconAnchor extends MatAnchorBase {
-  constructor(
-    elementRef: ElementRef,
-    platform: Platform,
-    ngZone: NgZone,
-    @Optional() @Inject(ANIMATION_MODULE_TYPE) animationMode?: string,
-  ) {
-    super(elementRef, platform, ngZone, animationMode);
-  }
-}
+export class MatIconAnchor extends MatAnchorBase {}

@@ -5,9 +5,7 @@
 ```ts
 
 import { AfterViewInit } from '@angular/core';
-import { ChangeDetectorRef } from '@angular/core';
 import { Direction } from '@angular/cdk/bidi';
-import { Directionality } from '@angular/cdk/bidi';
 import { ElementRef } from '@angular/core';
 import { EventEmitter } from '@angular/core';
 import * as i0 from '@angular/core';
@@ -18,8 +16,7 @@ import { NumberInput } from '@angular/cdk/coercion';
 import { Observable } from 'rxjs';
 import { OnChanges } from '@angular/core';
 import { OnDestroy } from '@angular/core';
-import { QueryList } from '@angular/core';
-import { ScrollDispatcher } from '@angular/cdk/scrolling';
+import { Renderer2 } from '@angular/core';
 import { SimpleChanges } from '@angular/core';
 import { Subject } from 'rxjs';
 import { TemplateRef } from '@angular/core';
@@ -33,7 +30,7 @@ export const CDK_DRAG_CONFIG: InjectionToken<DragDropConfig>;
 export const CDK_DRAG_HANDLE: InjectionToken<CdkDragHandle>;
 
 // @public
-export const CDK_DRAG_PARENT: InjectionToken<{}>;
+export const CDK_DRAG_PARENT: InjectionToken<CdkDrag<any>>;
 
 // @public
 export const CDK_DRAG_PLACEHOLDER: InjectionToken<CdkDragPlaceholder<any>>;
@@ -49,19 +46,20 @@ export const CDK_DROP_LIST_GROUP: InjectionToken<CdkDropListGroup<unknown>>;
 
 // @public
 export class CdkDrag<T = any> implements AfterViewInit, OnChanges, OnDestroy {
-    constructor(
-    element: ElementRef<HTMLElement>,
-    dropContainer: CdkDropList,
-    _document: any, _ngZone: NgZone, _viewContainerRef: ViewContainerRef, config: DragDropConfig, _dir: Directionality, dragDrop: DragDrop, _changeDetectorRef: ChangeDetectorRef, _selfHandle?: CdkDragHandle | undefined, _parentDrag?: CdkDrag<any> | undefined);
+    constructor(...args: unknown[]);
+    // (undocumented)
+    _addHandle(handle: CdkDragHandle): void;
     boundaryElement: string | ElementRef<HTMLElement> | HTMLElement;
-    constrainPosition?: (userPointerPosition: Point, dragRef: DragRef, dimensions: ClientRect, pickupPositionInElement: Point) => Point;
+    constrainPosition?: (userPointerPosition: Point, dragRef: DragRef, dimensions: DOMRect, pickupPositionInElement: Point) => Point;
     data: T;
     get disabled(): boolean;
     set disabled(value: boolean);
     _dragRef: DragRef<CdkDrag<T>>;
     dragStartDelay: DragStartDelay;
-    dropContainer: CdkDropList;
+    // (undocumented)
+    dropContainer: CdkDropList<any>;
     readonly dropped: EventEmitter<CdkDragDrop<any>>;
+    // (undocumented)
     element: ElementRef<HTMLElement>;
     readonly ended: EventEmitter<CdkDragEnd>;
     readonly entered: EventEmitter<CdkDragEnter<any>>;
@@ -70,30 +68,40 @@ export class CdkDrag<T = any> implements AfterViewInit, OnChanges, OnDestroy {
     getFreeDragPosition(): Readonly<Point>;
     getPlaceholderElement(): HTMLElement;
     getRootElement(): HTMLElement;
-    _handles: QueryList<CdkDragHandle>;
     lockAxis: DragAxis;
     readonly moved: Observable<CdkDragMove<T>>;
     // (undocumented)
     static ngAcceptInputType_disabled: unknown;
+    // (undocumented)
+    static ngAcceptInputType_scale: unknown;
     // (undocumented)
     ngAfterViewInit(): void;
     // (undocumented)
     ngOnChanges(changes: SimpleChanges): void;
     // (undocumented)
     ngOnDestroy(): void;
-    _placeholderTemplate: CdkDragPlaceholder;
     previewClass: string | string[];
     previewContainer: PreviewContainer;
-    _previewTemplate: CdkDragPreview;
     readonly released: EventEmitter<CdkDragRelease>;
+    // (undocumented)
+    _removeHandle(handle: CdkDragHandle): void;
     reset(): void;
+    // (undocumented)
+    _resetPlaceholderTemplate(placeholder: CdkDragPlaceholder): void;
+    // (undocumented)
+    _resetPreviewTemplate(preview: CdkDragPreview): void;
     rootElementSelector: string;
+    scale: number;
     setFreeDragPosition(value: Point): void;
+    // (undocumented)
+    _setPlaceholderTemplate(placeholder: CdkDragPlaceholder): void;
+    // (undocumented)
+    _setPreviewTemplate(preview: CdkDragPreview): void;
     readonly started: EventEmitter<CdkDragStart>;
     // (undocumented)
-    static ɵdir: i0.ɵɵDirectiveDeclaration<CdkDrag<any>, "[cdkDrag]", ["cdkDrag"], { "data": { "alias": "cdkDragData"; "required": false; }; "lockAxis": { "alias": "cdkDragLockAxis"; "required": false; }; "rootElementSelector": { "alias": "cdkDragRootElement"; "required": false; }; "boundaryElement": { "alias": "cdkDragBoundary"; "required": false; }; "dragStartDelay": { "alias": "cdkDragStartDelay"; "required": false; }; "freeDragPosition": { "alias": "cdkDragFreeDragPosition"; "required": false; }; "disabled": { "alias": "cdkDragDisabled"; "required": false; }; "constrainPosition": { "alias": "cdkDragConstrainPosition"; "required": false; }; "previewClass": { "alias": "cdkDragPreviewClass"; "required": false; }; "previewContainer": { "alias": "cdkDragPreviewContainer"; "required": false; }; }, { "started": "cdkDragStarted"; "released": "cdkDragReleased"; "ended": "cdkDragEnded"; "entered": "cdkDragEntered"; "exited": "cdkDragExited"; "dropped": "cdkDragDropped"; "moved": "cdkDragMoved"; }, ["_previewTemplate", "_placeholderTemplate", "_handles"], never, true, never>;
+    static ɵdir: i0.ɵɵDirectiveDeclaration<CdkDrag<any>, "[cdkDrag]", ["cdkDrag"], { "data": { "alias": "cdkDragData"; "required": false; }; "lockAxis": { "alias": "cdkDragLockAxis"; "required": false; }; "rootElementSelector": { "alias": "cdkDragRootElement"; "required": false; }; "boundaryElement": { "alias": "cdkDragBoundary"; "required": false; }; "dragStartDelay": { "alias": "cdkDragStartDelay"; "required": false; }; "freeDragPosition": { "alias": "cdkDragFreeDragPosition"; "required": false; }; "disabled": { "alias": "cdkDragDisabled"; "required": false; }; "constrainPosition": { "alias": "cdkDragConstrainPosition"; "required": false; }; "previewClass": { "alias": "cdkDragPreviewClass"; "required": false; }; "previewContainer": { "alias": "cdkDragPreviewContainer"; "required": false; }; "scale": { "alias": "cdkDragScale"; "required": false; }; }, { "started": "cdkDragStarted"; "released": "cdkDragReleased"; "ended": "cdkDragEnded"; "entered": "cdkDragEntered"; "exited": "cdkDragExited"; "dropped": "cdkDragDropped"; "moved": "cdkDragMoved"; }, never, never, true, never>;
     // (undocumented)
-    static ɵfac: i0.ɵɵFactoryDeclaration<CdkDrag<any>, [null, { optional: true; skipSelf: true; }, null, null, null, { optional: true; }, { optional: true; }, null, null, { optional: true; self: true; }, { optional: true; skipSelf: true; }]>;
+    static ɵfac: i0.ɵɵFactoryDeclaration<CdkDrag<any>, never>;
 }
 
 // @public
@@ -143,8 +151,8 @@ export interface CdkDragExit<T = any, I = T> {
 }
 
 // @public
-export class CdkDragHandle implements OnDestroy {
-    constructor(element: ElementRef<HTMLElement>, parentDrag?: any);
+export class CdkDragHandle implements AfterViewInit, OnDestroy {
+    constructor(...args: unknown[]);
     get disabled(): boolean;
     set disabled(value: boolean);
     // (undocumented)
@@ -152,13 +160,14 @@ export class CdkDragHandle implements OnDestroy {
     // (undocumented)
     static ngAcceptInputType_disabled: unknown;
     // (undocumented)
+    ngAfterViewInit(): void;
+    // (undocumented)
     ngOnDestroy(): void;
-    _parentDrag: {} | undefined;
     readonly _stateChanges: Subject<CdkDragHandle>;
     // (undocumented)
     static ɵdir: i0.ɵɵDirectiveDeclaration<CdkDragHandle, "[cdkDragHandle]", never, { "disabled": { "alias": "cdkDragHandleDisabled"; "required": false; }; }, {}, never, never, true, never>;
     // (undocumented)
-    static ɵfac: i0.ɵɵFactoryDeclaration<CdkDragHandle, [null, { optional: true; skipSelf: true; }]>;
+    static ɵfac: i0.ɵɵFactoryDeclaration<CdkDragHandle, never>;
 }
 
 // @public
@@ -180,9 +189,11 @@ export interface CdkDragMove<T = any> {
 }
 
 // @public
-export class CdkDragPlaceholder<T = any> {
-    constructor(templateRef: TemplateRef<T>);
+export class CdkDragPlaceholder<T = any> implements OnDestroy {
+    constructor(...args: unknown[]);
     data: T;
+    // (undocumented)
+    ngOnDestroy(): void;
     // (undocumented)
     templateRef: TemplateRef<T>;
     // (undocumented)
@@ -192,12 +203,14 @@ export class CdkDragPlaceholder<T = any> {
 }
 
 // @public
-export class CdkDragPreview<T = any> {
-    constructor(templateRef: TemplateRef<T>);
+export class CdkDragPreview<T = any> implements OnDestroy {
+    constructor(...args: unknown[]);
     data: T;
     matchSize: boolean;
     // (undocumented)
     static ngAcceptInputType_matchSize: unknown;
+    // (undocumented)
+    ngOnDestroy(): void;
     // (undocumented)
     templateRef: TemplateRef<T>;
     // (undocumented)
@@ -228,8 +241,7 @@ export interface CdkDragStart<T = any> {
 
 // @public
 export class CdkDropList<T = any> implements OnDestroy {
-    constructor(
-    element: ElementRef<HTMLElement>, dragDrop: DragDrop, _changeDetectorRef: ChangeDetectorRef, _scrollDispatcher: ScrollDispatcher, _dir?: Directionality | undefined, _group?: CdkDropListGroup<CdkDropList<any>> | undefined, config?: DragDropConfig);
+    constructor(...args: unknown[]);
     addItem(item: CdkDrag): void;
     autoScrollDisabled: boolean;
     autoScrollStep: NumberInput;
@@ -239,7 +251,9 @@ export class CdkDropList<T = any> implements OnDestroy {
     set disabled(value: boolean);
     _dropListRef: DropListRef<CdkDropList<T>>;
     readonly dropped: EventEmitter<CdkDragDrop<T, any>>;
+    // (undocumented)
     element: ElementRef<HTMLElement>;
+    elementContainerSelector: string | null;
     readonly entered: EventEmitter<CdkDragEnter<T>>;
     enterPredicate: (drag: CdkDrag, drop: CdkDropList) => boolean;
     readonly exited: EventEmitter<CdkDragExit<T>>;
@@ -260,9 +274,9 @@ export class CdkDropList<T = any> implements OnDestroy {
     sortingDisabled: boolean;
     sortPredicate: (index: number, drag: CdkDrag, drop: CdkDropList) => boolean;
     // (undocumented)
-    static ɵdir: i0.ɵɵDirectiveDeclaration<CdkDropList<any>, "[cdkDropList], cdk-drop-list", ["cdkDropList"], { "connectedTo": { "alias": "cdkDropListConnectedTo"; "required": false; }; "data": { "alias": "cdkDropListData"; "required": false; }; "orientation": { "alias": "cdkDropListOrientation"; "required": false; }; "id": { "alias": "id"; "required": false; }; "lockAxis": { "alias": "cdkDropListLockAxis"; "required": false; }; "disabled": { "alias": "cdkDropListDisabled"; "required": false; }; "sortingDisabled": { "alias": "cdkDropListSortingDisabled"; "required": false; }; "enterPredicate": { "alias": "cdkDropListEnterPredicate"; "required": false; }; "sortPredicate": { "alias": "cdkDropListSortPredicate"; "required": false; }; "autoScrollDisabled": { "alias": "cdkDropListAutoScrollDisabled"; "required": false; }; "autoScrollStep": { "alias": "cdkDropListAutoScrollStep"; "required": false; }; }, { "dropped": "cdkDropListDropped"; "entered": "cdkDropListEntered"; "exited": "cdkDropListExited"; "sorted": "cdkDropListSorted"; }, never, never, true, never>;
+    static ɵdir: i0.ɵɵDirectiveDeclaration<CdkDropList<any>, "[cdkDropList], cdk-drop-list", ["cdkDropList"], { "connectedTo": { "alias": "cdkDropListConnectedTo"; "required": false; }; "data": { "alias": "cdkDropListData"; "required": false; }; "orientation": { "alias": "cdkDropListOrientation"; "required": false; }; "id": { "alias": "id"; "required": false; }; "lockAxis": { "alias": "cdkDropListLockAxis"; "required": false; }; "disabled": { "alias": "cdkDropListDisabled"; "required": false; }; "sortingDisabled": { "alias": "cdkDropListSortingDisabled"; "required": false; }; "enterPredicate": { "alias": "cdkDropListEnterPredicate"; "required": false; }; "sortPredicate": { "alias": "cdkDropListSortPredicate"; "required": false; }; "autoScrollDisabled": { "alias": "cdkDropListAutoScrollDisabled"; "required": false; }; "autoScrollStep": { "alias": "cdkDropListAutoScrollStep"; "required": false; }; "elementContainerSelector": { "alias": "cdkDropListElementContainer"; "required": false; }; }, { "dropped": "cdkDropListDropped"; "entered": "cdkDropListEntered"; "exited": "cdkDropListExited"; "sorted": "cdkDropListSorted"; }, never, never, true, never>;
     // (undocumented)
-    static ɵfac: i0.ɵɵFactoryDeclaration<CdkDropList<any>, [null, null, null, null, { optional: true; }, { optional: true; skipSelf: true; }, { optional: true; }]>;
+    static ɵfac: i0.ɵɵFactoryDeclaration<CdkDropList<any>, never>;
 }
 
 // @public
@@ -290,7 +304,7 @@ export type DragConstrainPosition = (point: Point, dragRef: DragRef) => Point;
 
 // @public
 export class DragDrop {
-    constructor(_document: any, _ngZone: NgZone, _viewportRuler: ViewportRuler, _dragDropRegistry: DragDropRegistry<DragRef, DropListRef>);
+    constructor(...args: unknown[]);
     createDrag<T = any>(element: ElementRef<HTMLElement> | HTMLElement, config?: DragRefConfig): DragRef<T>;
     createDropList<T = any>(element: ElementRef<HTMLElement> | HTMLElement): DropListRef<T>;
     // (undocumented)
@@ -338,24 +352,25 @@ export class DragDropModule {
 }
 
 // @public
-export class DragDropRegistry<I extends {
-    isDragging(): boolean;
-}, C> implements OnDestroy {
-    constructor(_ngZone: NgZone, _document: any);
-    isDragging(drag: I): boolean;
+export class DragDropRegistry<_ = unknown, __ = unknown> implements OnDestroy {
+    constructor(...args: unknown[]);
+    getDragDirectiveForNode(node: Node): CdkDrag | null;
+    isDragging(drag: DragRef): boolean;
     // (undocumented)
     ngOnDestroy(): void;
     readonly pointerMove: Subject<TouchEvent | MouseEvent>;
     readonly pointerUp: Subject<TouchEvent | MouseEvent>;
-    registerDragItem(drag: I): void;
-    registerDropContainer(drop: C): void;
-    removeDragItem(drag: I): void;
-    removeDropContainer(drop: C): void;
+    registerDirectiveNode(node: Node, dragRef: CdkDrag): void;
+    registerDragItem(drag: DragRef): void;
+    registerDropContainer(drop: DropListRef): void;
+    removeDirectiveNode(node: Node): void;
+    removeDragItem(drag: DragRef): void;
+    removeDropContainer(drop: DropListRef): void;
     // @deprecated
     readonly scroll: Subject<Event>;
     scrolled(shadowRoot?: DocumentOrShadowRoot | null): Observable<Event>;
-    startDragging(drag: I, event: TouchEvent | MouseEvent): void;
-    stopDragging(drag: I): void;
+    startDragging(drag: DragRef, event: TouchEvent | MouseEvent): void;
+    stopDragging(drag: DragRef): void;
     // (undocumented)
     static ɵfac: i0.ɵɵFactoryDeclaration<DragDropRegistry<any, any>, never>;
     // (undocumented)
@@ -364,9 +379,9 @@ export class DragDropRegistry<I extends {
 
 // @public
 export class DragRef<T = any> {
-    constructor(element: ElementRef<HTMLElement> | HTMLElement, _config: DragRefConfig, _document: Document, _ngZone: NgZone, _viewportRuler: ViewportRuler, _dragDropRegistry: DragDropRegistry<DragRef, DropListRef>);
+    constructor(element: ElementRef<HTMLElement> | HTMLElement, _config: DragRefConfig, _document: Document, _ngZone: NgZone, _viewportRuler: ViewportRuler, _dragDropRegistry: DragDropRegistry, _renderer: Renderer2);
     readonly beforeStarted: Subject<void>;
-    constrainPosition?: (userPointerPosition: Point, dragRef: DragRef, dimensions: ClientRect, pickupPositionInElement: Point) => Point;
+    constrainPosition?: (userPointerPosition: Point, dragRef: DragRef, dimensions: DOMRect, pickupPositionInElement: Point) => Point;
     data: T;
     get disabled(): boolean;
     set disabled(value: boolean);
@@ -428,6 +443,7 @@ export class DragRef<T = any> {
         event: MouseEvent | TouchEvent;
     }>;
     reset(): void;
+    scale: number;
     setFreeDragPosition(value: Point): this;
     _sortFromLastPointerPosition(): void;
     readonly started: Subject<{
@@ -460,11 +476,11 @@ export type DragStartDelay = number | {
 };
 
 // @public
-export type DropListOrientation = 'horizontal' | 'vertical';
+export type DropListOrientation = 'horizontal' | 'vertical' | 'mixed';
 
 // @public
 export class DropListRef<T = any> {
-    constructor(element: ElementRef<HTMLElement> | HTMLElement, _dragDropRegistry: DragDropRegistry<DragRef, DropListRef>, _document: any, _ngZone: NgZone, _viewportRuler: ViewportRuler);
+    constructor(element: ElementRef<HTMLElement> | HTMLElement, _dragDropRegistry: DragDropRegistry, _document: any, _ngZone: NgZone, _viewportRuler: ViewportRuler);
     autoScrollDisabled: boolean;
     autoScrollStep: number;
     readonly beforeStarted: Subject<void>;
@@ -532,8 +548,9 @@ export class DropListRef<T = any> {
     _stopReceiving(sibling: DropListRef): void;
     _stopScrolling(): void;
     withDirection(direction: Direction): this;
+    withElementContainer(container: HTMLElement): this;
     withItems(items: DragRef[]): this;
-    withOrientation(orientation: 'vertical' | 'horizontal'): this;
+    withOrientation(orientation: DropListOrientation): this;
     withScrollableParents(elements: HTMLElement[]): this;
 }
 

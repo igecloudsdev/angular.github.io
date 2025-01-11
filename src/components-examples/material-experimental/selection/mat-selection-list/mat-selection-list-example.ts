@@ -1,7 +1,7 @@
 import {SelectionChange} from '@angular/cdk-experimental/selection';
 import {Component} from '@angular/core';
 import {MatCheckboxModule} from '@angular/material/checkbox';
-import {NgFor, AsyncPipe} from '@angular/common';
+import {AsyncPipe} from '@angular/common';
 import {MatSelectionModule} from '@angular/material-experimental/selection';
 
 /**
@@ -10,8 +10,7 @@ import {MatSelectionModule} from '@angular/material-experimental/selection';
 @Component({
   selector: 'mat-selection-list-example',
   templateUrl: 'mat-selection-list-example.html',
-  standalone: true,
-  imports: [MatSelectionModule, NgFor, MatCheckboxModule, AsyncPipe],
+  imports: [MatSelectionModule, MatCheckboxModule, AsyncPipe],
 })
 export class MatSelectionListExample {
   data = ELEMENT_NAMES;

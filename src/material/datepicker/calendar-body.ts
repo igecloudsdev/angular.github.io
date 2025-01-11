@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {Platform, normalizePassiveListenerOptions} from '@angular/cdk/platform';
@@ -21,8 +21,14 @@ import {
   OnDestroy,
   AfterViewChecked,
   inject,
+  afterNextRender,
+  Injector,
 } from '@angular/core';
-import {take} from 'rxjs/operators';
+import {_IdGenerator} from '@angular/cdk/a11y';
+import {NgClass} from '@angular/common';
+import {_CdkPrivateStyleLoader} from '@angular/cdk/private';
+import {_StructuralStylesLoader} from '@angular/material/core';
+import {MatDatepickerIntl} from './datepicker-intl';
 
 /** Extra CSS classes that can be associated with a calendar cell. */
 export type MatCalendarCellCssClasses = string | string[] | Set<string> | {[key: string]: any};
@@ -33,11 +39,15 @@ export type MatCalendarCellClassFunction<D> = (
   view: 'month' | 'year' | 'multi-year',
 ) => MatCalendarCellCssClasses;
 
+let uniqueIdCounter = 0;
+
 /**
  * An internal class that represents the data corresponding to a single calendar cell.
  * @docs-private
  */
 export class MatCalendarCell<D = any> {
+  readonly id = uniqueIdCounter++;
+
   constructor(
     public value: number,
     public displayValue: string,
@@ -54,8 +64,6 @@ export interface MatCalendarUserEvent<D> {
   value: D;
   event: Event;
 }
-
-let calendarBodyId = 1;
 
 /** Event options that can be used to bind an active, capturing event. */
 const activeCapturingEventOptions = normalizePassiveListenerOptions({
@@ -79,16 +87,20 @@ const passiveEventOptions = normalizePassiveListenerOptions({passive: true});
 @Component({
   selector: '[mat-calendar-body]',
   templateUrl: 'calendar-body.html',
-  styleUrls: ['calendar-body.css'],
+  styleUrl: 'calendar-body.css',
   host: {
     'class': 'mat-calendar-body',
   },
   exportAs: 'matCalendarBody',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [NgClass],
 })
 export class MatCalendarBody<D = any> implements OnChanges, OnDestroy, AfterViewChecked {
+  private _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private _ngZone = inject(NgZone);
   private _platform = inject(Platform);
+  private _intl = inject(MatDatepickerIntl);
 
   /**
    * Used to skip the next focus event when rendering the preview range.
@@ -184,11 +196,44 @@ export class MatCalendarBody<D = any> implements OnChanges, OnDestroy, AfterView
   /** Width of an individual cell. */
   _cellWidth: string;
 
+  /** ID for the start date label. */
+  _startDateLabelId: string;
+
+  /** ID for the end date label. */
+  _endDateLabelId: string;
+
+  /** ID for the comparison start date label. */
+  _comparisonStartDateLabelId: string;
+
+  /** ID for the comparison end date label. */
+  _comparisonEndDateLabelId: string;
+
   private _didDragSinceMouseDown = false;
 
-  constructor(private _elementRef: ElementRef<HTMLElement>, private _ngZone: NgZone) {
-    _ngZone.runOutsideAngular(() => {
-      const element = _elementRef.nativeElement;
+  private _injector = inject(Injector);
+
+  comparisonDateAccessibleName = this._intl.comparisonDateLabel;
+
+  /**
+   * Tracking function for rows based on their identity. Ideally we would use some sort of
+   * key on the row, but that would require a breaking change for the `rows` input. We don't
+   * use the built-in identity tracking, because it logs warnings.
+   */
+  _trackRow = (row: MatCalendarCell[]) => row;
+
+  constructor(...args: unknown[]);
+
+  constructor() {
+    const idGenerator = inject(_IdGenerator);
+    this._startDateLabelId = idGenerator.getId('mat-calendar-body-start-');
+    this._endDateLabelId = idGenerator.getId('mat-calendar-body-end-');
+    this._comparisonStartDateLabelId = idGenerator.getId('mat-calendar-body-comparison-start-');
+    this._comparisonEndDateLabelId = idGenerator.getId('mat-calendar-body-comparison-end-');
+
+    inject(_CdkPrivateStyleLoader).load(_StructuralStylesLoader);
+
+    this._ngZone.runOutsideAngular(() => {
+      const element = this._elementRef.nativeElement;
 
       // `touchmove` is active since we need to call `preventDefault`.
       element.addEventListener('touchmove', this._touchmoveHandler, activeCapturingEventOptions);
@@ -303,8 +348,8 @@ export class MatCalendarBody<D = any> implements OnChanges, OnDestroy, AfterView
    * Adding delay also complicates writing tests.
    */
   _focusActiveCell(movePreview = true) {
-    this._ngZone.runOutsideAngular(() => {
-      this._ngZone.onStable.pipe(take(1)).subscribe(() => {
+    afterNextRender(
+      () => {
         setTimeout(() => {
           const activeCell: HTMLElement | null = this._elementRef.nativeElement.querySelector(
             '.mat-calendar-body-active',
@@ -318,8 +363,9 @@ export class MatCalendarBody<D = any> implements OnChanges, OnDestroy, AfterView
             activeCell.focus();
           }
         });
-      });
-    });
+      },
+      {injector: this._injector},
+    );
   }
 
   /** Focuses the active cell after change detection has run and the microtask queue is empty. */
@@ -433,6 +479,17 @@ export class MatCalendarBody<D = any> implements OnChanges, OnDestroy, AfterView
     } else if (this.endValue === value) {
       return this._endDateLabelId;
     }
+
+    if (this.comparisonStart !== null && this.comparisonEnd !== null) {
+      if (value === this.comparisonStart && value === this.comparisonEnd) {
+        return `${this._comparisonStartDateLabelId} ${this._comparisonEndDateLabelId}`;
+      } else if (value === this.comparisonStart) {
+        return this._comparisonStartDateLabelId;
+      } else if (value === this.comparisonEnd) {
+        return this._comparisonEndDateLabelId;
+      }
+    }
+
     return null;
   }
 
@@ -512,7 +569,7 @@ export class MatCalendarBody<D = any> implements OnChanges, OnDestroy, AfterView
     this._didDragSinceMouseDown = false;
     // Begin a drag if a cell within the current range was targeted.
     const cell = event.target && this._getCellFromElement(event.target as HTMLElement);
-    if (!cell || !this._isInRange(cell.rawValue)) {
+    if (!cell || !this._isInRange(cell.compareValue)) {
       return;
     }
 
@@ -573,12 +630,6 @@ export class MatCalendarBody<D = any> implements OnChanges, OnDestroy, AfterView
 
     return null;
   }
-
-  private _id = `mat-calendar-body-${calendarBodyId++}`;
-
-  _startDateLabelId = `${this._id}-start-date`;
-
-  _endDateLabelId = `${this._id}-end-date`;
 }
 
 /** Checks whether a node is a table cell element. */

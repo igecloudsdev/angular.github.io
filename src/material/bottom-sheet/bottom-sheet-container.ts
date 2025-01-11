@@ -3,29 +3,23 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {AnimationEvent} from '@angular/animations';
-import {CdkDialogContainer, DialogConfig} from '@angular/cdk/dialog';
-import {FocusMonitor, FocusTrapFactory, InteractivityChecker} from '@angular/cdk/a11y';
+import {CdkDialogContainer} from '@angular/cdk/dialog';
 import {BreakpointObserver, Breakpoints} from '@angular/cdk/layout';
-import {OverlayRef} from '@angular/cdk/overlay';
-import {DOCUMENT} from '@angular/common';
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
-  ElementRef,
   EventEmitter,
-  Inject,
-  NgZone,
   OnDestroy,
-  Optional,
   ViewEncapsulation,
+  inject,
 } from '@angular/core';
 import {Subscription} from 'rxjs';
 import {matBottomSheetAnimations} from './bottom-sheet-animations';
+import {CdkPortalOutlet} from '@angular/cdk/portal';
 
 /**
  * Internal component that wraps user-provided bottom sheet content.
@@ -34,7 +28,7 @@ import {matBottomSheetAnimations} from './bottom-sheet-animations';
 @Component({
   selector: 'mat-bottom-sheet-container',
   templateUrl: 'bottom-sheet-container.html',
-  styleUrls: ['bottom-sheet-container.css'],
+  styleUrl: 'bottom-sheet-container.css',
   // In Ivy embedded views will be change detected from their declaration place, rather than where
   // they were stamped out. This means that we can't have the bottom sheet container be OnPush,
   // because it might cause the sheets that were opened from a template not to be out of date.
@@ -52,6 +46,7 @@ import {matBottomSheetAnimations} from './bottom-sheet-animations';
     '(@state.start)': '_onAnimationStart($event)',
     '(@state.done)': '_onAnimationDone($event)',
   },
+  imports: [CdkPortalOutlet],
 })
 export class MatBottomSheetContainer extends CdkDialogContainer implements OnDestroy {
   private _breakpointSubscription: Subscription;
@@ -65,41 +60,27 @@ export class MatBottomSheetContainer extends CdkDialogContainer implements OnDes
   /** Whether the component has been destroyed. */
   private _destroyed: boolean;
 
-  constructor(
-    elementRef: ElementRef,
-    focusTrapFactory: FocusTrapFactory,
-    @Optional() @Inject(DOCUMENT) document: any,
-    config: DialogConfig,
-    checker: InteractivityChecker,
-    ngZone: NgZone,
-    overlayRef: OverlayRef,
-    breakpointObserver: BreakpointObserver,
-    private _changeDetectorRef: ChangeDetectorRef,
-    focusMonitor?: FocusMonitor,
-  ) {
-    super(
-      elementRef,
-      focusTrapFactory,
-      document,
-      config,
-      checker,
-      ngZone,
-      overlayRef,
-      focusMonitor,
-    );
+  constructor(...args: unknown[]);
+
+  constructor() {
+    super();
+
+    const breakpointObserver = inject(BreakpointObserver);
 
     this._breakpointSubscription = breakpointObserver
       .observe([Breakpoints.Medium, Breakpoints.Large, Breakpoints.XLarge])
       .subscribe(() => {
-        this._toggleClass(
+        const classList = (this._elementRef.nativeElement as HTMLElement).classList;
+
+        classList.toggle(
           'mat-bottom-sheet-container-medium',
           breakpointObserver.isMatched(Breakpoints.Medium),
         );
-        this._toggleClass(
+        classList.toggle(
           'mat-bottom-sheet-container-large',
           breakpointObserver.isMatched(Breakpoints.Large),
         );
-        this._toggleClass(
+        classList.toggle(
           'mat-bottom-sheet-container-xlarge',
           breakpointObserver.isMatched(Breakpoints.XLarge),
         );
@@ -110,6 +91,7 @@ export class MatBottomSheetContainer extends CdkDialogContainer implements OnDes
   enter(): void {
     if (!this._destroyed) {
       this._animationState = 'visible';
+      this._changeDetectorRef.markForCheck();
       this._changeDetectorRef.detectChanges();
     }
   }
@@ -141,8 +123,4 @@ export class MatBottomSheetContainer extends CdkDialogContainer implements OnDes
   }
 
   protected override _captureInitialFocus(): void {}
-
-  private _toggleClass(cssClass: string, add: boolean) {
-    this._elementRef.nativeElement.classList.toggle(cssClass, add);
-  }
 }

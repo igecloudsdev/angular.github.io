@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {Direction} from '@angular/cdk/bidi';
@@ -72,4 +72,13 @@ export class MatBottomSheetConfig<D = any> {
 
   /** Scroll strategy to be used for the bottom sheet. */
   scrollStrategy?: ScrollStrategy;
+
+  /** Height for the bottom sheet. */
+  height?: string = '';
+
+  /** Minimum height for the bottom sheet. If a number is provided, assumes pixel units. */
+  minHeight?: number | string;
+
+  /** Maximum height for the bottom sheet. If a number is provided, assumes pixel units. */
+  maxHeight?: number | string;
 }

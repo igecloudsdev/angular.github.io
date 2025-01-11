@@ -27,9 +27,8 @@ const ELEMENT_DATA: PeriodicElement[] = [
  */
 @Component({
   selector: 'table-text-column-example',
-  styleUrls: ['table-text-column-example.css'],
+  styleUrl: 'table-text-column-example.css',
   templateUrl: 'table-text-column-example.html',
-  standalone: true,
   imports: [MatTableModule],
 })
 export class TableTextColumnExample {

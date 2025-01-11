@@ -11,8 +11,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 @Component({
   selector: 'tooltip-message-example',
   templateUrl: 'tooltip-message-example.html',
-  styleUrls: ['tooltip-message-example.css'],
-  standalone: true,
+  styleUrl: 'tooltip-message-example.css',
   imports: [
     MatFormFieldModule,
     MatInputModule,

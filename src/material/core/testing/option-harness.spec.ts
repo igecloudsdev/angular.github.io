@@ -1,11 +1,11 @@
-import {Component, ViewChildren, QueryList} from '@angular/core';
-import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {HarnessLoader, parallel} from '@angular/cdk/testing';
 import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
+import {Component, QueryList, ViewChildren, signal} from '@angular/core';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {
+  MAT_OPTION_PARENT_COMPONENT,
   MatOption,
   MatOptionModule,
-  MAT_OPTION_PARENT_COMPONENT,
   MatOptionParentComponent,
 } from '@angular/material/core';
 import {MatOptionHarness} from './option-harness';
@@ -14,11 +14,10 @@ describe('MatOptionHarness', () => {
   let fixture: ComponentFixture<OptionHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatOptionModule],
-      declarations: [OptionHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatOptionModule, OptionHarnessTest],
+    });
 
     fixture = TestBed.createComponent(OptionHarnessTest);
     fixture.detectChanges();
@@ -113,8 +112,15 @@ describe('MatOptionHarness', () => {
     <mat-option>Plain option</mat-option>
     <mat-option disabled>Disabled option</mat-option>
   `,
+  imports: [MatOptionModule],
 })
 class OptionHarnessTest implements MatOptionParentComponent {
   @ViewChildren(MatOption) options: QueryList<{setActiveStyles(): void}>;
-  multiple = false;
+  private readonly _multiple = signal(false);
+  get multiple() {
+    return this._multiple();
+  }
+  set multiple(v: boolean) {
+    this._multiple.set(v);
+  }
 }

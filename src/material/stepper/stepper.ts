@@ -3,35 +3,24 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Directionality} from '@angular/cdk/bidi';
-import {
-  CdkStep,
-  CdkStepper,
-  StepContentPositionState,
-  STEPPER_GLOBAL_OPTIONS,
-  StepperOptions,
-} from '@angular/cdk/stepper';
+import {CdkStep, CdkStepper, StepContentPositionState} from '@angular/cdk/stepper';
 import {AnimationEvent} from '@angular/animations';
 import {
   AfterContentInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   ContentChild,
   ContentChildren,
   ElementRef,
   EventEmitter,
-  forwardRef,
-  Inject,
+  inject,
   Input,
   OnDestroy,
-  Optional,
   Output,
   QueryList,
-  SkipSelf,
   TemplateRef,
   ViewChildren,
   ViewContainerRef,
@@ -39,9 +28,9 @@ import {
 } from '@angular/core';
 import {AbstractControl, FormGroupDirective, NgForm} from '@angular/forms';
 import {ErrorStateMatcher, ThemePalette} from '@angular/material/core';
-import {TemplatePortal} from '@angular/cdk/portal';
+import {CdkPortalOutlet, TemplatePortal} from '@angular/cdk/portal';
 import {Subject, Subscription} from 'rxjs';
-import {takeUntil, distinctUntilChanged, map, startWith, switchMap} from 'rxjs/operators';
+import {takeUntil, map, startWith, switchMap} from 'rxjs/operators';
 
 import {MatStepHeader} from './step-header';
 import {MatStepLabel} from './step-label';
@@ -52,6 +41,8 @@ import {
 } from './stepper-animations';
 import {MatStepperIcon, MatStepperIconContext} from './stepper-icon';
 import {MatStepContent} from './step-content';
+import {NgTemplateOutlet} from '@angular/common';
+import {Platform} from '@angular/cdk/platform';
 
 @Component({
   selector: 'mat-step',
@@ -63,15 +54,27 @@ import {MatStepContent} from './step-content';
   encapsulation: ViewEncapsulation.None,
   exportAs: 'matStep',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CdkPortalOutlet],
+  host: {
+    'hidden': '', // Hide the steps so they don't affect the layout.
+  },
 })
 export class MatStep extends CdkStep implements ErrorStateMatcher, AfterContentInit, OnDestroy {
+  private _errorStateMatcher = inject(ErrorStateMatcher, {skipSelf: true});
+  private _viewContainerRef = inject(ViewContainerRef);
   private _isSelected = Subscription.EMPTY;
 
   /** Content for step label given by `<ng-template matStepLabel>`. */
   // We need an initializer here to avoid a TS error.
   @ContentChild(MatStepLabel) override stepLabel: MatStepLabel = undefined!;
 
-  /** Theme color for the particular step. */
+  /**
+   * Theme color for the particular step. This API is supported in M2 themes
+   * only, it has no effect in M3 themes. For color customization in M3, see https://material.angular.io/components/stepper/styling.
+   *
+   * For information on applying color variants in M3, see
+   * https://material.angular.io/guide/material-2-theming#optional-add-backwards-compatibility-styles-for-color-variants
+   */
   @Input() color: ThemePalette;
 
   /** Content that will be rendered lazily. */
@@ -79,15 +82,6 @@ export class MatStep extends CdkStep implements ErrorStateMatcher, AfterContentI
 
   /** Currently-attached portal containing the lazy content. */
   _portal: TemplatePortal;
-
-  constructor(
-    @Inject(forwardRef(() => MatStepper)) stepper: MatStepper,
-    @SkipSelf() private _errorStateMatcher: ErrorStateMatcher,
-    private _viewContainerRef: ViewContainerRef,
-    @Optional() @Inject(STEPPER_GLOBAL_OPTIONS) stepperOptions?: StepperOptions,
-  ) {
-    super(stepper, stepperOptions);
-  }
 
   ngAfterContentInit() {
     this._isSelected = this._stepper.steps.changes
@@ -127,8 +121,7 @@ export class MatStep extends CdkStep implements ErrorStateMatcher, AfterContentI
   selector: 'mat-stepper, mat-vertical-stepper, mat-horizontal-stepper, [matStepper]',
   exportAs: 'matStepper, matVerticalStepper, matHorizontalStepper',
   templateUrl: 'stepper.html',
-  styleUrls: ['stepper.css'],
-  inputs: ['selectedIndex'],
+  styleUrl: 'stepper.css',
   host: {
     '[class.mat-stepper-horizontal]': 'orientation === "horizontal"',
     '[class.mat-stepper-vertical]': 'orientation === "vertical"',
@@ -139,7 +132,6 @@ export class MatStep extends CdkStep implements ErrorStateMatcher, AfterContentI
     '[class.mat-stepper-header-position-bottom]': 'headerPosition === "bottom"',
     '[attr.aria-orientation]': 'orientation',
     'role': 'tablist',
-    'ngSkipHydration': '',
   },
   animations: [
     matStepperAnimations.horizontalStepTransition,
@@ -148,6 +140,7 @@ export class MatStep extends CdkStep implements ErrorStateMatcher, AfterContentI
   providers: [{provide: CdkStepper, useExisting: MatStepper}],
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [NgTemplateOutlet, MatStepHeader],
 })
 export class MatStepper extends CdkStepper implements AfterContentInit {
   /** The list of step headers of the steps in the stepper. */
@@ -172,7 +165,13 @@ export class MatStepper extends CdkStepper implements AfterContentInit {
   /** Whether ripples should be disabled for the step headers. */
   @Input() disableRipple: boolean;
 
-  /** Theme color for all of the steps in stepper. */
+  /**
+   * Theme color for all of the steps in stepper. This API is supported in M2
+   * themes only, it has no effect in M3 themes. For color customization in M3, see https://material.angular.io/components/stepper/styling.
+   *
+   * For information on applying color variants in M3, see
+   * https://material.angular.io/guide/material-2-theming#optional-add-backwards-compatibility-styles-for-color-variants
+   */
   @Input() color: ThemePalette;
 
   /**
@@ -205,12 +204,15 @@ export class MatStepper extends CdkStepper implements AfterContentInit {
   }
   private _animationDuration = '';
 
-  constructor(
-    @Optional() dir: Directionality,
-    changeDetectorRef: ChangeDetectorRef,
-    elementRef: ElementRef<HTMLElement>,
-  ) {
-    super(dir, changeDetectorRef, elementRef);
+  /** Whether the stepper is rendering on the server. */
+  protected _isServer: boolean = !inject(Platform).isBrowser;
+
+  constructor(...args: unknown[]);
+
+  constructor() {
+    super();
+
+    const elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
     const nodeName = elementRef.nativeElement.nodeName.toLowerCase();
     this.orientation = nodeName === 'mat-vertical-stepper' ? 'vertical' : 'horizontal';
   }
@@ -224,19 +226,11 @@ export class MatStepper extends CdkStepper implements AfterContentInit {
       this._stateChanged();
     });
 
-    this._animationDone
-      .pipe(
-        // This needs a `distinctUntilChanged` in order to avoid emitting the same event twice due
-        // to a bug in animations where the `.done` callback gets invoked twice on some browsers.
-        // See https://github.com/angular/angular/issues/24084
-        distinctUntilChanged((x, y) => x.fromState === y.fromState && x.toState === y.toState),
-        takeUntil(this._destroyed),
-      )
-      .subscribe(event => {
-        if ((event.toState as StepContentPositionState) === 'current') {
-          this.animationDone.emit();
-        }
-      });
+    this._animationDone.pipe(takeUntil(this._destroyed)).subscribe(event => {
+      if ((event.toState as StepContentPositionState) === 'current') {
+        this.animationDone.emit();
+      }
+    });
   }
 
   _stepIsNavigable(index: number, step: MatStep): boolean {

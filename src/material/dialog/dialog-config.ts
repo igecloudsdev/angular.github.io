@@ -3,10 +3,10 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
-import {ViewContainerRef, ComponentFactoryResolver, Injector} from '@angular/core';
+import {ViewContainerRef, Injector} from '@angular/core';
 import {Direction} from '@angular/cdk/bidi';
 import {ScrollStrategy} from '@angular/cdk/overlay';
 import {_defaultParams} from './dialog-animations';
@@ -81,7 +81,7 @@ export class MatDialogConfig<D = any> {
   minHeight?: number | string;
 
   /** Max-width of the dialog. If a number is provided, assumes pixel units. Defaults to 80vw. */
-  maxWidth?: number | string = '80vw';
+  maxWidth?: number | string;
 
   /** Max-height of the dialog. If a number is provided, assumes pixel units. */
   maxHeight?: number | string;
@@ -133,8 +133,12 @@ export class MatDialogConfig<D = any> {
    */
   closeOnNavigation?: boolean = true;
 
-  /** Alternate `ComponentFactoryResolver` to use when resolving the associated component. */
-  componentFactoryResolver?: ComponentFactoryResolver;
+  /**
+   * Alternate `ComponentFactoryResolver` to use when resolving the associated component.
+   * @deprecated No longer used. Will be removed.
+   * @breaking-change 20.0.0
+   */
+  componentFactoryResolver?: unknown;
 
   /**
    * Duration of the enter animation in ms.

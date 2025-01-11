@@ -1,27 +1,38 @@
-import {Component} from '@angular/core';
-import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {HarnessLoader, parallel} from '@angular/cdk/testing';
 import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
-import {MatNativeDateModule} from '@angular/material/core';
+import {Component} from '@angular/core';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {FormsModule} from '@angular/forms';
-import {MatDatepickerModule} from '@angular/material/datepicker';
+import {MatNativeDateModule} from '@angular/material/core';
+import {
+  MatDateRangeInput,
+  MatDateRangePicker,
+  MatDatepickerModule,
+  MatEndDate,
+  MatStartDate,
+} from '@angular/material/datepicker';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {MatCalendarHarness} from './calendar-harness';
 import {
   MatDateRangeInputHarness,
-  MatStartDateHarness,
   MatEndDateHarness,
+  MatStartDateHarness,
 } from './date-range-input-harness';
 
 describe('matDateRangeInputHarness', () => {
   let fixture: ComponentFixture<DateRangeInputHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, MatNativeDateModule, MatDatepickerModule, FormsModule],
-      declarations: [DateRangeInputHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [
+        NoopAnimationsModule,
+        MatNativeDateModule,
+        MatDatepickerModule,
+        FormsModule,
+        DateRangeInputHarnessTest,
+      ],
+    });
 
     fixture = TestBed.createComponent(DateRangeInputHarnessTest);
     fixture.detectChanges();
@@ -38,6 +49,7 @@ describe('matDateRangeInputHarness', () => {
     expect(await input.isDisabled()).toBe(false);
 
     fixture.componentInstance.disabled = true;
+    fixture.changeDetectorRef.markForCheck();
     expect(await input.isDisabled()).toBe(true);
   });
 
@@ -46,6 +58,7 @@ describe('matDateRangeInputHarness', () => {
     expect(await input.isRequired()).toBe(false);
 
     fixture.componentInstance.required = true;
+    fixture.changeDetectorRef.markForCheck();
     expect(await input.isRequired()).toBe(true);
   });
 
@@ -59,6 +72,7 @@ describe('matDateRangeInputHarness', () => {
 
     fixture.componentInstance.startDate = new Date(2020, 0, 1, 12, 0, 0);
     fixture.componentInstance.endDate = new Date(2020, 1, 2, 12, 0, 0);
+    fixture.changeDetectorRef.markForCheck();
 
     expect(await input.getValue()).toBe('1/1/2020 – 2/2/2020');
   });
@@ -83,6 +97,7 @@ describe('matDateRangeInputHarness', () => {
 
   it('should be able to open and close a calendar in touch mode', async () => {
     fixture.componentInstance.touchUi = true;
+    fixture.changeDetectorRef.markForCheck();
     const input = await loader.getHarness(MatDateRangeInputHarness.with({selector: '[basic]'}));
     expect(await input.isCalendarOpen()).toBe(false);
 
@@ -106,6 +121,7 @@ describe('matDateRangeInputHarness', () => {
     expect(await parallel(() => [start.isDisabled(), end.isDisabled()])).toEqual([false, false]);
 
     fixture.componentInstance.subInputsDisabled = true;
+    fixture.changeDetectorRef.markForCheck();
     expect(await parallel(() => [start.isDisabled(), end.isDisabled()])).toEqual([true, true]);
   });
 
@@ -116,6 +132,7 @@ describe('matDateRangeInputHarness', () => {
     expect(await parallel(() => [start.isRequired(), end.isRequired()])).toEqual([false, false]);
 
     fixture.componentInstance.subInputsRequired = true;
+    fixture.changeDetectorRef.markForCheck();
     expect(await parallel(() => [start.isRequired(), end.isRequired()])).toEqual([true, true]);
   });
 
@@ -125,6 +142,7 @@ describe('matDateRangeInputHarness', () => {
 
     fixture.componentInstance.startDate = new Date(2020, 0, 1, 12, 0, 0);
     fixture.componentInstance.endDate = new Date(2020, 1, 2, 12, 0, 0);
+    fixture.changeDetectorRef.markForCheck();
 
     expect(
       await parallel(() => {
@@ -182,6 +200,7 @@ describe('matDateRangeInputHarness', () => {
     expect(await parallel(() => [start.getMin(), end.getMin()])).toEqual([null, null]);
 
     fixture.componentInstance.minDate = new Date(2020, 0, 1, 12, 0, 0);
+    fixture.changeDetectorRef.markForCheck();
     expect(
       await parallel(() => {
         return [start.getMin(), end.getMin()];
@@ -196,6 +215,7 @@ describe('matDateRangeInputHarness', () => {
     expect(await parallel(() => [start.getMax(), end.getMax()])).toEqual([null, null]);
 
     fixture.componentInstance.maxDate = new Date(2020, 0, 1, 12, 0, 0);
+    fixture.changeDetectorRef.markForCheck();
 
     expect(
       await parallel(() => {
@@ -249,6 +269,14 @@ describe('matDateRangeInputHarness', () => {
       <input matEndDate>
     </mat-date-range-input>
   `,
+  imports: [
+    MatNativeDateModule,
+    MatDateRangeInput,
+    MatStartDate,
+    MatEndDate,
+    MatDateRangePicker,
+    FormsModule,
+  ],
 })
 class DateRangeInputHarnessTest {
   startDate: Date | null = null;

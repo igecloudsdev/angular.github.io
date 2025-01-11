@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {
@@ -26,17 +26,13 @@ import {
   CdkPortalOutlet,
   ComponentPortal,
   DomPortal,
-  PortalModule,
   TemplatePortal,
 } from '@angular/cdk/portal';
 import {Observable, Subject} from 'rxjs';
-import {AriaLivePoliteness} from '@angular/cdk/a11y';
+import {_IdGenerator, AriaLivePoliteness} from '@angular/cdk/a11y';
 import {Platform} from '@angular/cdk/platform';
 import {AnimationEvent} from '@angular/animations';
-import {take} from 'rxjs/operators';
 import {MatSnackBarConfig} from './snack-bar-config';
-
-let uniqueId = 0;
 
 /**
  * Internal component that wraps user-provided snack bar content.
@@ -45,7 +41,7 @@ let uniqueId = 0;
 @Component({
   selector: 'mat-snack-bar-container',
   templateUrl: 'snack-bar-container.html',
-  styleUrls: ['snack-bar-container.css'],
+  styleUrl: 'snack-bar-container.css',
   // In Ivy embedded views will be change detected from their declaration place, rather than
   // where they were stamped out. This means that we can't have the snack bar container be OnPush,
   // because it might cause snack bars that were opened from a template not to be out of date.
@@ -53,15 +49,20 @@ let uniqueId = 0;
   changeDetection: ChangeDetectionStrategy.Default,
   encapsulation: ViewEncapsulation.None,
   animations: [matSnackBarAnimations.snackBarState],
-  standalone: true,
-  imports: [PortalModule],
+  imports: [CdkPortalOutlet],
   host: {
-    'class': 'mdc-snackbar mat-mdc-snack-bar-container mdc-snackbar--open',
+    'class': 'mdc-snackbar mat-mdc-snack-bar-container',
     '[@state]': '_animationState',
     '(@state.done)': 'onAnimationEnd($event)',
   },
 })
 export class MatSnackBarContainer extends BasePortalOutlet implements OnDestroy {
+  private _ngZone = inject(NgZone);
+  private _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private _changeDetectorRef = inject(ChangeDetectorRef);
+  private _platform = inject(Platform);
+  snackBarConfig = inject(MatSnackBarConfig);
+
   private _document = inject(DOCUMENT);
   private _trackedModals = new Set<Element>();
 
@@ -69,7 +70,7 @@ export class MatSnackBarContainer extends BasePortalOutlet implements OnDestroy 
   private readonly _announceDelay: number = 150;
 
   /** The timeout for announcing the snack bar's content. */
-  private _announceTimeoutId: number;
+  private _announceTimeoutId: ReturnType<typeof setTimeout>;
 
   /** Whether the component has been destroyed. */
   private _destroyed = false;
@@ -106,23 +107,19 @@ export class MatSnackBarContainer extends BasePortalOutlet implements OnDestroy 
   _role?: 'status' | 'alert';
 
   /** Unique ID of the aria-live element. */
-  readonly _liveElementId = `mat-snack-bar-container-live-${uniqueId++}`;
+  readonly _liveElementId = inject(_IdGenerator).getId('mat-snack-bar-container-live-');
 
-  constructor(
-    private _ngZone: NgZone,
-    private _elementRef: ElementRef<HTMLElement>,
-    private _changeDetectorRef: ChangeDetectorRef,
-    private _platform: Platform,
-    /** The snack bar configuration. */
-    public snackBarConfig: MatSnackBarConfig,
-  ) {
+  constructor(...args: unknown[]);
+
+  constructor() {
     super();
+    const config = this.snackBarConfig;
 
     // Use aria-live rather than a live role like 'alert' or 'status'
     // because NVDA and JAWS have show inconsistent behavior with live roles.
-    if (snackBarConfig.politeness === 'assertive' && !snackBarConfig.announcementMessage) {
+    if (config.politeness === 'assertive' && !config.announcementMessage) {
       this._live = 'assertive';
-    } else if (snackBarConfig.politeness === 'off') {
+    } else if (config.politeness === 'off') {
       this._live = 'off';
     } else {
       this._live = 'polite';
@@ -192,6 +189,9 @@ export class MatSnackBarContainer extends BasePortalOutlet implements OnDestroy 
   enter(): void {
     if (!this._destroyed) {
       this._animationState = 'visible';
+      // _animationState lives in host bindings and `detectChanges` does not refresh host bindings
+      // so we have to call `markForCheck` to ensure the host view is refreshed eventually.
+      this._changeDetectorRef.markForCheck();
       this._changeDetectorRef.detectChanges();
       this._screenReaderAnnounce();
     }
@@ -206,6 +206,7 @@ export class MatSnackBarContainer extends BasePortalOutlet implements OnDestroy 
       // where multiple snack bars are opened in quick succession (e.g. two consecutive calls to
       // `MatSnackBar.open`).
       this._animationState = 'hidden';
+      this._changeDetectorRef.markForCheck();
 
       // Mark this element with an 'exit' attribute to indicate that the snackbar has
       // been dismissed and will soon be removed from the DOM. This is used by the snackbar
@@ -228,15 +229,13 @@ export class MatSnackBarContainer extends BasePortalOutlet implements OnDestroy 
   }
 
   /**
-   * Waits for the zone to settle before removing the element. Helps prevent
-   * errors where we end up removing an element which is in the middle of an animation.
+   * Removes the element in a microtask. Helps prevent errors where we end up
+   * removing an element which is in the middle of an animation.
    */
   private _completeExit() {
-    this._ngZone.onMicrotaskEmpty.pipe(take(1)).subscribe(() => {
-      this._ngZone.run(() => {
-        this._onExit.next();
-        this._onExit.complete();
-      });
+    queueMicrotask(() => {
+      this._onExit.next();
+      this._onExit.complete();
     });
   }
 

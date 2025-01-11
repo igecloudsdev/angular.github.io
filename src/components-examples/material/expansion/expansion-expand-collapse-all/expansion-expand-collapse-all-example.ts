@@ -1,11 +1,11 @@
-import {Component, ViewChild} from '@angular/core';
-import {MatAccordion, MatExpansionModule} from '@angular/material/expansion';
+import {ChangeDetectionStrategy, Component, viewChild} from '@angular/core';
+import {MatButtonModule} from '@angular/material/button';
+import {provideNativeDateAdapter} from '@angular/material/core';
 import {MatDatepickerModule} from '@angular/material/datepicker';
-import {MatInputModule} from '@angular/material/input';
+import {MatAccordion, MatExpansionModule} from '@angular/material/expansion';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatIconModule} from '@angular/material/icon';
-import {MatButtonModule} from '@angular/material/button';
-import {MatNativeDateModule} from '@angular/material/core';
+import {MatInputModule} from '@angular/material/input';
 
 /**
  * @title Accordion with expand/collapse all toggles
@@ -13,8 +13,8 @@ import {MatNativeDateModule} from '@angular/material/core';
 @Component({
   selector: 'expansion-expand-collapse-all-example',
   templateUrl: 'expansion-expand-collapse-all-example.html',
-  styleUrls: ['expansion-expand-collapse-all-example.css'],
-  standalone: true,
+  styleUrl: 'expansion-expand-collapse-all-example.css',
+  providers: [provideNativeDateAdapter()],
   imports: [
     MatButtonModule,
     MatExpansionModule,
@@ -22,9 +22,9 @@ import {MatNativeDateModule} from '@angular/material/core';
     MatFormFieldModule,
     MatInputModule,
     MatDatepickerModule,
-    MatNativeDateModule,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExpansionExpandCollapseAllExample {
-  @ViewChild(MatAccordion) accordion: MatAccordion;
+  accordion = viewChild.required(MatAccordion);
 }

@@ -1,4 +1,5 @@
 @use './typography';
+@use '../m2/typography' as m2-typography;
 @use '../../autocomplete/autocomplete-theme';
 @use '../../badge/badge-theme';
 @use '../../bottom-sheet/bottom-sheet-theme';
@@ -34,15 +35,16 @@
 @use '../../tooltip/tooltip-theme';
 @use '../../snack-bar/snack-bar-theme';
 @use '../../form-field/form-field-theme';
+@use '../../timepicker/timepicker-theme';
 @use '../../tree/tree-theme';
 @use '../theming/inspection';
 @use '../core-theme';
 
 // Includes all of the typographic styles.
 @mixin all-component-typographies($theme: null) {
-  // If no actual color configuration has been specified, create a default one.
+  // If no actual typography configuration has been specified, create a default one.
   @if not inspection.theme-has($theme, typography) {
-    $theme: typography.define-typography-config();
+    $theme: m2-typography.define-typography-config();
   }
 
   // TODO: COMP-309: Do not use individual mixins. Instead, use the all-theme mixin and only
@@ -51,7 +53,12 @@
   // mixin that is transitively loaded by the `all-theme` file, imports `all-typography` which
   // would then load `all-theme` again. This ultimately results a circular dependency.
   @include badge-theme.typography($theme);
-  @include typography.typography-hierarchy($theme);
+  // Historically the typography hierarchy styles were included as part of this. We maintain this
+  // behavior for M2, but from M3 forward this is not included and should be explicitly @included
+  // by the user if desired.
+  @if (inspection.get-theme-version($theme) < 1) {
+    @include typography.typography-hierarchy($theme);
+  }
   @include bottom-sheet-theme.typography($theme);
   @include button-toggle-theme.typography($theme);
   @include divider-theme.typography($theme);
@@ -88,6 +95,7 @@
   @include fab-theme.typography($theme);
   @include snack-bar-theme.typography($theme);
   @include table-theme.typography($theme);
+  @include timepicker-theme.typography($theme);
 }
 
 // @deprecated Use `all-component-typographies`.

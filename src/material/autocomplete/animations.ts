@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {
@@ -17,7 +17,6 @@ import {
 } from '@angular/animations';
 
 // Animation values come from
-// https://github.com/material-components/material-components-web/blob/master/packages/mdc-menu-surface/_mixins.scss
 // TODO(mmalerba): Ideally find a way to import the values from MDC's code.
 export const panelAnimation: AnimationTriggerMetadata = trigger('panelAnimation', [
   state(

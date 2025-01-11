@@ -1,14 +1,14 @@
-import {fakeAsync, TestBed, waitForAsync} from '@angular/core/testing';
 import {dispatchFakeEvent, dispatchMouseEvent} from '@angular/cdk/testing/private';
 import {Component, QueryList, ViewChild, ViewChildren} from '@angular/core';
+import {TestBed, fakeAsync, waitForAsync} from '@angular/core/testing';
 import {By} from '@angular/platform-browser';
 import {MatListItem, MatListModule} from './index';
 
-describe('MDC-based MatList', () => {
+describe('MatList', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [MatListModule],
-      declarations: [
+      imports: [
+        MatListModule,
         ListWithOneAnchorItem,
         ListWithOneItem,
         ListWithTwoLineItem,
@@ -17,7 +17,6 @@ describe('MDC-based MatList', () => {
         ListWithItemWithCssClass,
         ListWithDynamicNumberOfLines,
         ListWithMultipleItems,
-        ListWithManyLines,
         NavListWithOneAnchorItem,
         NavListWithActivatedItem,
         ActionListWithoutType,
@@ -28,8 +27,6 @@ describe('MDC-based MatList', () => {
         StandaloneListItem,
       ],
     });
-
-    TestBed.compileComponents();
   }));
 
   it('should apply an additional class to lists without lines', () => {
@@ -69,13 +66,13 @@ describe('MDC-based MatList', () => {
   });
 
   it('should have a strong focus indicator configured for all list-items', () => {
-    const fixture = TestBed.createComponent(ListWithManyLines);
+    const fixture = TestBed.createComponent(ListWithThreeLineItem);
     fixture.detectChanges();
     const listItems = fixture.debugElement.children[0]
       .queryAll(By.css('mat-list-item'))
       .map(debugEl => debugEl.nativeElement as HTMLElement);
 
-    expect(listItems.every(i => i.querySelector('.mat-mdc-focus-indicator') !== null))
+    expect(listItems.every(i => i.querySelector('.mat-focus-indicator') !== null))
       .withContext('Expected all list items to have a strong focus indicator element.')
       .toBe(true);
   });
@@ -91,6 +88,7 @@ describe('MDC-based MatList', () => {
   it('should update classes if number of lines change', () => {
     const fixture = TestBed.createComponent(ListWithDynamicNumberOfLines);
     fixture.debugElement.componentInstance.showThirdLine = false;
+    fixture.changeDetectorRef.markForCheck();
     fixture.detectChanges();
 
     const listItem = fixture.debugElement.children[0].query(By.css('mat-list-item'))!;
@@ -99,6 +97,7 @@ describe('MDC-based MatList', () => {
     expect(listItem.nativeElement.classList).toContain('mdc-list-item');
 
     fixture.debugElement.componentInstance.showThirdLine = true;
+    fixture.changeDetectorRef.markForCheck();
     fixture.detectChanges();
     expect(listItem.nativeElement.className).toContain('mdc-list-item--with-three-lines');
   });
@@ -176,6 +175,7 @@ describe('MDC-based MatList', () => {
     items.forEach(item => expect(item.rippleDisabled).toBe(false));
 
     fixture.componentInstance.disableItemRipple = true;
+    fixture.changeDetectorRef.markForCheck();
     fixture.detectChanges();
 
     items.forEach(item => expect(item.rippleDisabled).toBe(true));
@@ -215,6 +215,7 @@ describe('MDC-based MatList', () => {
     expect(items.every(item => !item.rippleDisabled)).toBe(true);
 
     fixture.componentInstance.disableItemRipple = true;
+    fixture.changeDetectorRef.markForCheck();
     fixture.detectChanges();
 
     expect(items.every(item => item.rippleDisabled)).toBe(true);
@@ -247,6 +248,7 @@ describe('MDC-based MatList', () => {
     items.forEach(item => expect(item.rippleDisabled).toBe(false));
 
     fixture.componentInstance.disableListRipple = true;
+    fixture.changeDetectorRef.markForCheck();
     fixture.detectChanges();
 
     items.forEach(item => expect(item.rippleDisabled).toBe(true));
@@ -262,6 +264,7 @@ describe('MDC-based MatList', () => {
     expect(items.every(item => !item.rippleDisabled)).toBe(true);
 
     fixture.componentInstance.disableListRipple = true;
+    fixture.changeDetectorRef.markForCheck();
     fixture.detectChanges();
 
     expect(items.every(item => item.rippleDisabled)).toBe(true);
@@ -291,6 +294,7 @@ describe('MDC-based MatList', () => {
       .toBe(0);
 
     fixture.componentInstance.disableListRipple = true;
+    fixture.changeDetectorRef.markForCheck();
     fixture.detectChanges();
 
     dispatchMouseEvent(rippleTarget, 'mousedown');
@@ -325,6 +329,7 @@ describe('MDC-based MatList', () => {
       .toBe(0);
 
     fixture.componentInstance.disableListRipple = true;
+    fixture.changeDetectorRef.markForCheck();
     fixture.detectChanges();
 
     dispatchMouseEvent(rippleTarget, 'mousedown');
@@ -349,6 +354,7 @@ describe('MDC-based MatList', () => {
     ).toEqual([false, false, false]);
 
     fixture.componentInstance.firstItemDisabled = true;
+    fixture.changeDetectorRef.markForCheck();
     fixture.detectChanges();
 
     expect(
@@ -368,6 +374,7 @@ describe('MDC-based MatList', () => {
     expect(listItems.every(item => item.classList.contains('mdc-list-item--disabled'))).toBe(false);
 
     fixture.componentInstance.listDisabled = true;
+    fixture.changeDetectorRef.markForCheck();
     fixture.detectChanges();
 
     expect(listItems.every(item => item.classList.contains('mdc-list-item--disabled'))).toBe(true);
@@ -390,6 +397,7 @@ describe('MDC-based MatList', () => {
     expect(listItems.every(listItem => listItem.hasAttribute('disabled'))).toBe(true);
 
     fixture.componentInstance.disableList = false;
+    fixture.changeDetectorRef.markForCheck();
     fixture.detectChanges();
 
     expect(listItems.every(listItem => !listItem.hasAttribute('disabled'))).toBe(true);
@@ -403,6 +411,7 @@ describe('MDC-based MatList', () => {
     expect(buttonItem.hasAttribute('disabled')).toBe(true);
 
     fixture.componentInstance.buttonItem.disabled = false;
+    fixture.changeDetectorRef.markForCheck();
     fixture.detectChanges();
 
     expect(buttonItem.hasAttribute('disabled')).toBe(false);
@@ -425,6 +434,7 @@ class BaseTestList {
       Paprika
     </a>
   </mat-list>`,
+  imports: [MatListModule],
 })
 class ListWithOneAnchorItem extends BaseTestList {
   // This needs to be declared directly on the class; if declared on the BaseTestList superclass,
@@ -439,6 +449,7 @@ class ListWithOneAnchorItem extends BaseTestList {
       Paprika
     </a>
   </mat-nav-list>`,
+  imports: [MatListModule],
 })
 class NavListWithOneAnchorItem extends BaseTestList {
   @ViewChildren(MatListItem) listItems: QueryList<MatListItem>;
@@ -449,11 +460,14 @@ class NavListWithOneAnchorItem extends BaseTestList {
 @Component({
   template: `
   <mat-nav-list [disableRipple]="disableListRipple">
-    <a *ngFor="let item of items; let index = index" mat-list-item [disableRipple]="disableItemRipple"
-      [activated]="index === activatedIndex">
-      {{item.name}}
-    </a>
+    @for (item of items; track item; let index = $index) {
+      <a mat-list-item [disableRipple]="disableItemRipple"
+        [activated]="index === activatedIndex">
+        {{item.name}}
+      </a>
+    }
   </mat-nav-list>`,
+  imports: [MatListModule],
 })
 class NavListWithActivatedItem extends BaseTestList {
   @ViewChildren(MatListItem) listItems: QueryList<MatListItem>;
@@ -471,6 +485,7 @@ class NavListWithActivatedItem extends BaseTestList {
       Paprika
     </button>
   </mat-action-list>`,
+  imports: [MatListModule],
 })
 class ActionListWithoutType extends BaseTestList {
   @ViewChildren(MatListItem) listItems: QueryList<MatListItem>;
@@ -485,6 +500,7 @@ class ActionListWithoutType extends BaseTestList {
       Paprika
     </button>
   </mat-action-list>`,
+  imports: [MatListModule],
 })
 class ActionListWithType extends BaseTestList {
   @ViewChildren(MatListItem) listItems: QueryList<MatListItem>;
@@ -493,10 +509,11 @@ class ActionListWithType extends BaseTestList {
 @Component({
   template: `
   <mat-action-list [disabled]="disableList">
-    <button mat-list-item *ngFor="let item of items">
-      {{item.name}}
-    </button>
+    @for (item of items; track item) {
+      <button mat-list-item>{{item.name}}</button>
+    }
   </mat-action-list>`,
+  imports: [MatListModule],
 })
 class ActionListWithDisabledList extends BaseTestList {
   disableList = true;
@@ -509,6 +526,7 @@ class ActionListWithDisabledList extends BaseTestList {
       Paprika
     </button>
   </mat-action-list>`,
+  imports: [MatListModule],
 })
 class ActionListWithDisabledItem extends BaseTestList {
   @ViewChild(MatListItem) buttonItem: MatListItem;
@@ -522,45 +540,39 @@ class ActionListWithDisabledItem extends BaseTestList {
       Paprika
     </mat-list-item>
   </mat-list>`,
+  imports: [MatListModule],
 })
 class ListWithOneItem extends BaseTestList {}
 
 @Component({
   template: `
   <mat-list>
-    <mat-list-item *ngFor="let item of items">
-      <img src="">
-      <h3 matListItemTitle>{{item.name}}</h3>
-      <p matListItemLine>{{item.description}}</p>
-    </mat-list-item>
+    @for (item of items; track item) {
+      <mat-list-item>
+        <img src="">
+        <h3 matListItemTitle>{{item.name}}</h3>
+        <p matListItemLine>{{item.description}}</p>
+      </mat-list-item>
+    }
   </mat-list>`,
+  imports: [MatListModule],
 })
 class ListWithTwoLineItem extends BaseTestList {}
 
 @Component({
   template: `
   <mat-list>
-    <mat-list-item *ngFor="let item of items">
-      <h3 matListItemTitle>{{item.name}}</h3>
-      <p matListItemLine>{{item.description}}</p>
-      <p matListItemLine>Some other text</p>
-    </mat-list-item>
+    @for (item of items; track item) {
+      <mat-list-item>
+        <h3 matListItemTitle>{{item.name}}</h3>
+        <p matListItemLine>{{item.description}}</p>
+        <p matListItemLine>Some other text</p>
+      </mat-list-item>
+    }
   </mat-list>`,
+  imports: [MatListModule],
 })
 class ListWithThreeLineItem extends BaseTestList {}
-
-@Component({
-  template: `
-  <mat-list>
-    <mat-list-item *ngFor="let item of items">
-      <h3 matListItemTitle>Line 1</h3>
-      <p matListItemLine>Line 2</p>
-      <p matListItemLine>Line 3</p>
-      <p matListItemLine>Line 4</p>
-    </mat-list-item>
-  </mat-list>`,
-})
-class ListWithManyLines extends BaseTestList {}
 
 @Component({
   template: `
@@ -573,39 +585,49 @@ class ListWithManyLines extends BaseTestList {}
       Pepper
     </mat-list-item>
   </mat-list>`,
+  imports: [MatListModule],
 })
 class ListWithAvatar extends BaseTestList {}
 
 @Component({
   template: `
   <mat-list>
-    <mat-list-item class="test-class" *ngFor="let item of items">
-      <h3 matListItemTitle>{{item.name}}</h3>
-      <p matListItemLine>{{item.description}}</p>
-    </mat-list-item>
+    @for (item of items; track item) {
+      <mat-list-item class="test-class">
+        <h3 matListItemTitle>{{item.name}}</h3>
+        <p matListItemLine>{{item.description}}</p>
+      </mat-list-item>
+    }
   </mat-list>`,
+  imports: [MatListModule],
 })
 class ListWithItemWithCssClass extends BaseTestList {}
 
 @Component({
   template: `
   <mat-list>
-    <mat-list-item *ngFor="let item of items">
-      <h3 matListItemTitle>{{item.name}}</h3>
-      <p matListItemLine>{{item.description}}</p>
-      <p matListItemLine *ngIf="showThirdLine">Some other text</p>
-    </mat-list-item>
+    @for (item of items; track item) {
+      <mat-list-item>
+        <h3 matListItemTitle>{{item.name}}</h3>
+        <p matListItemLine>{{item.description}}</p>
+        @if (showThirdLine) {
+          <p matListItemLine>Some other text</p>
+        }
+      </mat-list-item>
+    }
   </mat-list>`,
+  imports: [MatListModule],
 })
 class ListWithDynamicNumberOfLines extends BaseTestList {}
 
 @Component({
   template: `
   <mat-list>
-    <mat-list-item *ngFor="let item of items">
-      {{item.name}}
-    </mat-list-item>
+    @for (item of items; track item) {
+      <mat-list-item>{{item.name}}</mat-list-item>
+    }
   </mat-list>`,
+  imports: [MatListModule],
 })
 class ListWithMultipleItems extends BaseTestList {}
 
@@ -616,6 +638,7 @@ class ListWithMultipleItems extends BaseTestList {}
     <mat-list-item>Two</mat-list-item>
     <mat-list-item>Three</mat-list-item>
   </mat-list>`,
+  imports: [MatListModule],
 })
 class ListWithDisabledItems {
   firstItemDisabled = false;
@@ -624,5 +647,6 @@ class ListWithDisabledItems {
 
 @Component({
   template: `<mat-list-item></mat-list-item>`,
+  imports: [MatListModule],
 })
 class StandaloneListItem {}

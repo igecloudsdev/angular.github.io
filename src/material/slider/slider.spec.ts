@@ -3,44 +3,44 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {BidiModule, Directionality} from '@angular/cdk/bidi';
 import {Platform} from '@angular/cdk/platform';
-import {dispatchEvent, dispatchFakeEvent, dispatchPointerEvent} from '../../cdk/testing/private';
+import {dispatchEvent, dispatchFakeEvent, dispatchPointerEvent} from '@angular/cdk/testing/private';
 import {Component, Provider, QueryList, Type, ViewChild, ViewChildren} from '@angular/core';
 import {
   ComponentFixture,
+  TestBed,
   fakeAsync,
   flush,
-  TestBed,
-  waitForAsync,
   tick,
+  waitForAsync,
 } from '@angular/core/testing';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {By} from '@angular/platform-browser';
+import {of} from 'rxjs';
 import {MatSliderModule} from './module';
 import {MatSlider} from './slider';
-import {MatSliderVisualThumb} from './slider-thumb';
-import {MatSliderThumb, MatSliderRangeThumb} from './slider-input';
+import {MatSliderRangeThumb, MatSliderThumb} from './slider-input';
 import {_MatThumb} from './slider-interface';
-import {of} from 'rxjs';
+import {MatSliderVisualThumb} from './slider-thumb';
 
 interface Point {
   x: number;
   y: number;
 }
 
-describe('MDC-based MatSlider', () => {
+describe('MatSlider', () => {
   let platform: Platform;
 
   function createComponent<T>(component: Type<T>, providers: Provider[] = []): ComponentFixture<T> {
     TestBed.configureTestingModule({
       imports: [FormsModule, MatSliderModule, ReactiveFormsModule, BidiModule],
-      declarations: [component],
       providers: [...providers],
-    }).compileComponents();
+      declarations: [component],
+    });
     platform = TestBed.inject(Platform);
     return TestBed.createComponent<T>(component);
   }
@@ -59,7 +59,24 @@ describe('MDC-based MatSlider', () => {
     expect(input.min).withContext('min').toBe(min);
     expect(input.max).withContext('max').toBe(max);
     expect(input.value).withContext('value').toBe(value);
-    expect(input.translateX).withContext('translateX').toBeCloseTo(translateX, 0.1);
+
+    // The discrepancy between the "ideal" and "actual" translateX comes from
+    // the 3px offset from the start & end of the slider track to the first
+    // and last tick marks.
+    //
+    // The "actual" translateX is calculated based on a slider that is 6px
+    // smaller than the width of the slider. Using this "actual" translateX in
+    // tests would make it even more difficult than it already is to tell if
+    // the translateX is off, so we abstract things in here so tests can be
+    // more intuitive.
+    //
+    // The most clear way to compare the two tx's is to just turn them into
+    // percentages by dividing by their (total height) / 100.
+    const idealTXPercentage = Math.round(translateX / 3);
+    const actualTXPercentage = Math.round((input.translateX - 3) / 2.94);
+    expect(actualTXPercentage)
+      .withContext(`translateX: ${input.translateX} should be close to ${translateX}`)
+      .toBe(idealTXPercentage);
     if (step !== undefined) {
       expect(input.step).withContext('step').toBe(step);
     }
@@ -73,6 +90,16 @@ describe('MDC-based MatSlider', () => {
         .toBeCloseTo((300 * width) / 100 + 16, 0);
     }
   }
+
+  // Note that this test is outside of the other `describe` blocks, because they all run
+  // `detectChanges` in the `beforeEach` and we're testing specifically what happens if it
+  // is destroyed before change detection has run.
+  it('should not throw if a slider is destroyed before the first change detection run', () => {
+    expect(() => {
+      const fixture = createComponent(StandardSlider);
+      fixture.destroy();
+    }).not.toThrow();
+  });
 
   describe('standard slider', () => {
     let fixture: ComponentFixture<StandardSlider>;
@@ -252,18 +279,21 @@ describe('MDC-based MatSlider', () => {
 
     it('should update the min when the bound value changes', () => {
       fixture.componentInstance.min = 0;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       checkInput(input, {min: 0, max: 75, value: 25, translateX: 100});
     });
 
     it('should update the max when the bound value changes', () => {
       fixture.componentInstance.max = 90;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       checkInput(input, {min: 25, max: 90, value: 25, translateX: 0});
     });
 
     it('should update the value if the min increases past it', () => {
       fixture.componentInstance.min = 50;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       checkInput(input, {min: 50, max: 75, value: 50, translateX: 0});
     });
@@ -271,18 +301,21 @@ describe('MDC-based MatSlider', () => {
     it('should update the value if the max decreases below it', () => {
       input.value = 75;
       fixture.componentInstance.max = 50;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       checkInput(input, {min: 25, max: 50, value: 50, translateX: 300});
     });
 
     it('should allow the min increase above the max', () => {
       fixture.componentInstance.min = 80;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       checkInput(input, {min: 80, max: 75, value: 80, translateX: 0});
     });
 
     it('should allow the max to decrease below the min', () => {
       fixture.componentInstance.max = -10;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       checkInput(input, {min: 25, max: -10, value: 25, translateX: 0});
     });
@@ -290,6 +323,7 @@ describe('MDC-based MatSlider', () => {
     it('should update the thumb translateX when the min changes', () => {
       checkInput(input, {min: 25, max: 75, value: 25, translateX: 0});
       fixture.componentInstance.min = -25;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       checkInput(input, {min: -25, max: 75, value: 25, translateX: 150});
     });
@@ -298,6 +332,7 @@ describe('MDC-based MatSlider', () => {
       setValueByClick(slider, input, 50);
       checkInput(input, {min: 25, max: 75, value: 50, translateX: 150});
       fixture.componentInstance.max = 125;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       checkInput(input, {min: 25, max: 125, value: 50, translateX: 75});
     }));
@@ -329,6 +364,7 @@ describe('MDC-based MatSlider', () => {
         checkInput(endInput, {min: 25, max: 75, value: 75, translateX: 300});
 
         fixture.componentInstance.min = -25;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         checkInput(startInput, {min: -25, max: 75, value: 25, translateX: 150});
@@ -337,6 +373,7 @@ describe('MDC-based MatSlider', () => {
 
       it('that affect the start value', () => {
         fixture.componentInstance.min = 50;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
         checkInput(startInput, {min: 50, max: 75, value: 50, translateX: 0});
         checkInput(endInput, {min: 50, max: 75, value: 75, translateX: 300});
@@ -345,6 +382,7 @@ describe('MDC-based MatSlider', () => {
       it('that affect both values', () => {
         endInput.value = 50;
         fixture.componentInstance.min = 60;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
         checkInput(startInput, {min: 60, max: 60, value: 60, translateX: 0});
         checkInput(endInput, {min: 60, max: 75, value: 60, translateX: 0});
@@ -353,6 +391,7 @@ describe('MDC-based MatSlider', () => {
       it('where the new start tx is greater than the old end tx', fakeAsync(() => {
         fixture.componentInstance.min = 0;
         fixture.componentInstance.max = 100;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         slideToValue(slider, startInput, 10);
@@ -362,6 +401,7 @@ describe('MDC-based MatSlider', () => {
         checkInput(endInput, {min: 10, max: 100, value: 20, translateX: 60});
 
         fixture.componentInstance.min = -1000;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         checkInput(startInput, {min: -1000, max: 20, value: 10, translateX: 275.5});
@@ -371,6 +411,7 @@ describe('MDC-based MatSlider', () => {
       it('where the new end tx is less than the old start tx', fakeAsync(() => {
         fixture.componentInstance.min = 0;
         fixture.componentInstance.max = 100;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         slideToValue(slider, endInput, 92);
@@ -380,6 +421,7 @@ describe('MDC-based MatSlider', () => {
         checkInput(endInput, {min: 91, max: 100, value: 92, translateX: 276});
 
         fixture.componentInstance.min = 90;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         checkInput(startInput, {min: 90, max: 92, value: 91, translateX: 30});
@@ -388,6 +430,7 @@ describe('MDC-based MatSlider', () => {
 
       it('that make min and max equal', () => {
         fixture.componentInstance.min = 75;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         checkInput(startInput, {min: 75, max: 75, value: 75, translateX: 0});
@@ -396,6 +439,7 @@ describe('MDC-based MatSlider', () => {
 
       it('that increase above the max', () => {
         fixture.componentInstance.min = 80;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         checkInput(startInput, {min: 80, max: 75, value: 80, translateX: 0});
@@ -409,6 +453,7 @@ describe('MDC-based MatSlider', () => {
         checkInput(endInput, {min: 25, max: 75, value: 75, translateX: 300});
 
         fixture.componentInstance.max = 125;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         checkInput(startInput, {min: 25, max: 75, value: 25, translateX: 0});
@@ -417,6 +462,7 @@ describe('MDC-based MatSlider', () => {
 
       it('that affect the end value', () => {
         fixture.componentInstance.max = 50;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
         checkInput(endInput, {min: 25, max: 50, value: 50, translateX: 300});
         checkInput(startInput, {min: 25, max: 50, value: 25, translateX: 0});
@@ -425,6 +471,7 @@ describe('MDC-based MatSlider', () => {
       it('that affect both values', () => {
         startInput.value = 60;
         fixture.componentInstance.max = 50;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
         checkInput(endInput, {min: 50, max: 50, value: 50, translateX: 300});
         checkInput(startInput, {min: 25, max: 50, value: 50, translateX: 300});
@@ -433,6 +480,7 @@ describe('MDC-based MatSlider', () => {
       it('where the new start tx is greater than the old end tx', fakeAsync(() => {
         fixture.componentInstance.min = 0;
         fixture.componentInstance.max = 100;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         slideToValue(slider, startInput, 1);
@@ -442,6 +490,7 @@ describe('MDC-based MatSlider', () => {
         checkInput(endInput, {min: 1, max: 100, value: 2, translateX: 6});
 
         fixture.componentInstance.max = 10;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         checkInput(startInput, {min: 0, max: 2, value: 1, translateX: 30});
@@ -451,6 +500,7 @@ describe('MDC-based MatSlider', () => {
       it('where the new end tx is less than the old start tx', fakeAsync(() => {
         fixture.componentInstance.min = 0;
         fixture.componentInstance.max = 100;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         slideToValue(slider, endInput, 95);
@@ -460,6 +510,7 @@ describe('MDC-based MatSlider', () => {
         checkInput(endInput, {min: 90, max: 100, value: 95, translateX: 285});
 
         fixture.componentInstance.max = 1000;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         checkInput(startInput, {min: 0, max: 95, value: 90, translateX: 27});
@@ -468,6 +519,7 @@ describe('MDC-based MatSlider', () => {
 
       it('that make min and max equal', () => {
         fixture.componentInstance.max = 25;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         checkInput(startInput, {min: 25, max: 25, value: 25, translateX: 0});
@@ -476,6 +528,7 @@ describe('MDC-based MatSlider', () => {
 
       it('that decrease below the min', () => {
         fixture.componentInstance.max = 0;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         // For some reason there was a bug with Safari 15.3.
@@ -618,7 +671,13 @@ describe('MDC-based MatSlider', () => {
       pointerdown();
       pointerup();
       flush();
-      expect(isRippleVisible('focus')).toBeTrue();
+
+      // The slider immediately loses focus on pointerup for Safari.
+      if (platform.SAFARI) {
+        expect(isRippleVisible('hover')).toBeTrue();
+      } else {
+        expect(isRippleVisible('focus')).toBeTrue();
+      }
     }));
 
     it('should hide the focus ripple on blur', fakeAsync(() => {
@@ -632,8 +691,8 @@ describe('MDC-based MatSlider', () => {
     it('should show the active ripple on pointerdown', fakeAsync(() => {
       expect(isRippleVisible('active')).toBeFalse();
       pointerdown();
-      flush();
       expect(isRippleVisible('active')).toBeTrue();
+      flush();
     }));
 
     it('should hide the active ripple on pointerup', fakeAsync(() => {
@@ -760,6 +819,7 @@ describe('MDC-based MatSlider', () => {
 
     it('should not add decimals to the value if it is a whole number', fakeAsync(() => {
       fixture.componentInstance.step = 0.1;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       slideToValue(slider, input, 11);
       expect(input.value).toBe(11);
@@ -767,6 +827,7 @@ describe('MDC-based MatSlider', () => {
 
     it('should truncate long decimal values when using a decimal step', fakeAsync(() => {
       fixture.componentInstance.step = 0.5;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       slideToValue(slider, input, 55.555);
       expect(input.value).toBe(55.5);
@@ -775,6 +836,7 @@ describe('MDC-based MatSlider', () => {
     it('should update the value on step change', fakeAsync(() => {
       slideToValue(slider, input, 30);
       fixture.componentInstance.step = 50;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       expect(input.value).toBe(50);
     }));
@@ -807,6 +869,7 @@ describe('MDC-based MatSlider', () => {
 
     it('should not add decimals to the end value if it is a whole number', fakeAsync(() => {
       fixture.componentInstance.step = 0.1;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       slideToValue(slider, endInput, 11);
       expect(endInput.value).toBe(11);
@@ -814,6 +877,7 @@ describe('MDC-based MatSlider', () => {
 
     it('should not add decimals to the start value if it is a whole number', fakeAsync(() => {
       fixture.componentInstance.step = 0.1;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       slideToValue(slider, startInput, 11);
       expect(startInput.value).toBe(11);
@@ -821,6 +885,7 @@ describe('MDC-based MatSlider', () => {
 
     it('should truncate long decimal start values when using a decimal step', fakeAsync(() => {
       fixture.componentInstance.step = 0.1;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       slideToValue(slider, startInput, 33.666);
       expect(startInput.value).toBe(33.7);
@@ -828,6 +893,7 @@ describe('MDC-based MatSlider', () => {
 
     it('should truncate long decimal end values when using a decimal step', fakeAsync(() => {
       fixture.componentInstance.step = 0.1;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       slideToValue(slider, endInput, 33.6666);
       expect(endInput.value).toBe(33.7);
@@ -836,6 +902,7 @@ describe('MDC-based MatSlider', () => {
     describe('should handle step changes', () => {
       it('where the new start tx is greater than the old end tx', fakeAsync(() => {
         fixture.componentInstance.step = 0;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         slideToValue(slider, startInput, 45);
@@ -845,6 +912,7 @@ describe('MDC-based MatSlider', () => {
         checkInput(endInput, {min: 45, max: 100, value: 46, translateX: 138});
 
         fixture.componentInstance.step = 50;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         checkInput(startInput, {min: 0, max: 50, value: 50, translateX: 150});
@@ -853,6 +921,7 @@ describe('MDC-based MatSlider', () => {
 
       it('where the new end tx is less than the old start tx', fakeAsync(() => {
         fixture.componentInstance.step = 0;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         slideToValue(slider, startInput, 21);
@@ -862,6 +931,7 @@ describe('MDC-based MatSlider', () => {
         checkInput(endInput, {min: 21, max: 100, value: 22, translateX: 66});
 
         fixture.componentInstance.step = 50;
+        fixture.changeDetectorRef.markForCheck();
         fixture.detectChanges();
 
         checkInput(startInput, {min: 0, max: 0, value: 0, translateX: 0});
@@ -983,6 +1053,7 @@ describe('MDC-based MatSlider', () => {
 
     it('should update when bound value changes', () => {
       fixture.componentInstance.value = 75;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       expect(input.value).toBe(75);
     });
@@ -1004,14 +1075,44 @@ describe('MDC-based MatSlider', () => {
 
     it('should update when bound start value changes', () => {
       fixture.componentInstance.startValue = 30;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       expect(startInput.value).toBe(30);
     });
 
     it('should update when bound end value changes', () => {
       fixture.componentInstance.endValue = 70;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       expect(endInput.value).toBe(70);
+    });
+
+    it('should update the input width when the start value changes', () => {
+      const startInputEl = startInput._elementRef.nativeElement;
+      const endInputEl = endInput._elementRef.nativeElement;
+      const startInputWidthBefore = startInputEl.getBoundingClientRect().width;
+      const endInputWidthBefore = endInputEl.getBoundingClientRect().width;
+      fixture.componentInstance.startValue = 10;
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+      const startInputWidthAfter = startInputEl.getBoundingClientRect().width;
+      const endInputWidthAfter = endInputEl.getBoundingClientRect().width;
+      expect(startInputWidthBefore).not.toBe(startInputWidthAfter);
+      expect(endInputWidthBefore).not.toBe(endInputWidthAfter);
+    });
+
+    it('should update the input width when the end value changes', () => {
+      const startInputEl = startInput._elementRef.nativeElement;
+      const endInputEl = endInput._elementRef.nativeElement;
+      const startInputWidthBefore = startInputEl.getBoundingClientRect().width;
+      const endInputWidthBefore = endInputEl.getBoundingClientRect().width;
+      fixture.componentInstance.endValue = 90;
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+      const startInputWidthAfter = startInputEl.getBoundingClientRect().width;
+      const endInputWidthAfter = endInputEl.getBoundingClientRect().width;
+      expect(startInputWidthBefore).not.toBe(startInputWidthAfter);
+      expect(endInputWidthBefore).not.toBe(endInputWidthAfter);
     });
   });
 
@@ -1088,6 +1189,7 @@ describe('MDC-based MatSlider', () => {
 
     it('should update the slider', fakeAsync(() => {
       fixture.componentInstance.val = 20;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       flush();
       checkInput(input, {min: 0, max: 100, value: 20, translateX: 60});
@@ -1095,11 +1197,13 @@ describe('MDC-based MatSlider', () => {
 
     it('should be able to reset a slider by setting the model back to undefined', fakeAsync(() => {
       fixture.componentInstance.val = 5;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       flush();
       checkInput(input, {min: 0, max: 100, value: 5, translateX: 15});
 
       fixture.componentInstance.val = undefined;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       flush();
       checkInput(input, {min: 0, max: 100, value: 0, translateX: 0});
@@ -1135,11 +1239,13 @@ describe('MDC-based MatSlider', () => {
 
     it('should update the thumbs on ngModel value change', fakeAsync(() => {
       fixture.componentInstance.startVal = 50;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       flush();
       checkInput(startInput, {min: 0, max: 100, value: 50, translateX: 150});
 
       fixture.componentInstance.endVal = 75;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       flush();
       checkInput(endInput, {min: 50, max: 100, value: 75, translateX: 225});
@@ -1147,11 +1253,13 @@ describe('MDC-based MatSlider', () => {
 
     it('should be able to reset a start input', fakeAsync(() => {
       fixture.componentInstance.startVal = 5;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       flush();
       checkInput(startInput, {min: 0, max: 100, value: 5, translateX: 15});
 
       fixture.componentInstance.startVal = undefined;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       flush();
       checkInput(startInput, {min: 0, max: 100, value: 0, translateX: 0});
@@ -1159,11 +1267,13 @@ describe('MDC-based MatSlider', () => {
 
     it('should be able to reset an end input', fakeAsync(() => {
       fixture.componentInstance.endVal = 99;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       flush();
       checkInput(endInput, {min: 0, max: 100, value: 99, translateX: 297});
 
       fixture.componentInstance.endVal = undefined;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       flush();
       checkInput(endInput, {min: 0, max: 100, value: 0, translateX: 0});
@@ -1209,11 +1319,11 @@ describe('MDC-based MatSlider', () => {
       checkInput(input, {min: 0, max: 100, value: 7, translateX: 21});
     });
 
-    it('should update the disabled state when control is disabled', fakeAsync(() => {
+    it('should update the disabled state when control is disabled', () => {
       expect(slider.disabled).toBe(false);
       fixture.componentInstance.control.disable();
       expect(slider.disabled).toBe(true);
-    }));
+    });
 
     it('should update the disabled state when the control is enabled', () => {
       slider.disabled = true;
@@ -1381,6 +1491,7 @@ describe('MDC-based MatSlider', () => {
       checkInput(input, {min: 0, max: 100, value: 10, step: 1, translateX: 30});
 
       fixture.componentInstance.value = 20;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       expect(fixture.componentInstance.value).toBe(20);
       checkInput(input, {min: 0, max: 100, value: 20, step: 1, translateX: 60});
@@ -1412,6 +1523,7 @@ describe('MDC-based MatSlider', () => {
       expect(startInput.value).toBe(10);
 
       fixture.componentInstance.startValue = 20;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       expect(fixture.componentInstance.startValue).toBe(20);
       expect(startInput.value).toBe(20);
@@ -1426,6 +1538,7 @@ describe('MDC-based MatSlider', () => {
       expect(endInput.value).toBe(90);
 
       fixture.componentInstance.endValue = 80;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       expect(fixture.componentInstance.endValue).toBe(80);
       expect(endInput.value).toBe(80);
@@ -1442,6 +1555,7 @@ const SLIDER_STYLES = ['.mat-mdc-slider { width: 300px; }'];
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class StandardSlider {}
 
@@ -1453,6 +1567,7 @@ class StandardSlider {}
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class StandardRangeSlider {}
 
@@ -1463,6 +1578,7 @@ class StandardRangeSlider {}
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class DisabledSlider {}
 
@@ -1474,6 +1590,7 @@ class DisabledSlider {}
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class DisabledRangeSlider {}
 
@@ -1484,6 +1601,7 @@ class DisabledRangeSlider {}
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class SliderWithMinAndMax {
   min = 25;
@@ -1498,6 +1616,7 @@ class SliderWithMinAndMax {
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class RangeSliderWithMinAndMax {
   min = 25;
@@ -1511,6 +1630,7 @@ class RangeSliderWithMinAndMax {
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class SliderWithValue {}
 
@@ -1522,6 +1642,7 @@ class SliderWithValue {}
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class RangeSliderWithValue {}
 
@@ -1532,6 +1653,7 @@ class RangeSliderWithValue {}
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class SliderWithStep {
   step = 25;
@@ -1545,6 +1667,7 @@ class SliderWithStep {
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class RangeSliderWithStep {
   step = 25;
@@ -1557,6 +1680,7 @@ class RangeSliderWithStep {
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class DiscreteSliderWithDisplayWith {
   displayWith(v: number) {
@@ -1572,6 +1696,7 @@ class DiscreteSliderWithDisplayWith {
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class DiscreteRangeSliderWithDisplayWith {
   displayWith(v: number) {
@@ -1586,6 +1711,7 @@ class DiscreteRangeSliderWithDisplayWith {
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class SliderWithOneWayBinding {
   value = 50;
@@ -1599,6 +1725,7 @@ class SliderWithOneWayBinding {
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class RangeSliderWithOneWayBinding {
   startValue = 25;
@@ -1612,6 +1739,7 @@ class RangeSliderWithOneWayBinding {
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class SliderWithNgModel {
   @ViewChild(MatSlider) slider: MatSlider;
@@ -1626,6 +1754,7 @@ class SliderWithNgModel {
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class RangeSliderWithNgModel {
   @ViewChild(MatSlider) slider: MatSlider;
@@ -1642,6 +1771,7 @@ class RangeSliderWithNgModel {
 
 `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class RangeSliderWithNgModelEdgeCase {
   @ViewChild(MatSlider) slider: MatSlider;
@@ -1655,6 +1785,7 @@ class RangeSliderWithNgModelEdgeCase {
     <input [formControl]="control" matSliderThumb>
   </mat-slider>`,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class SliderWithFormControl {
   control = new FormControl(0);
@@ -1667,6 +1798,7 @@ class SliderWithFormControl {
     <input [formControl]="endInputControl" matSliderEndThumb>
   </mat-slider>`,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class RangeSliderWithFormControl {
   startInputControl = new FormControl(0);
@@ -1680,6 +1812,7 @@ class RangeSliderWithFormControl {
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class SliderWithTwoWayBinding {
   value = 0;
@@ -1693,6 +1826,7 @@ class SliderWithTwoWayBinding {
   </mat-slider>
   `,
   styles: SLIDER_STYLES,
+  standalone: false,
 })
 class RangeSliderWithTwoWayBinding {
   @ViewChild(MatSlider) slider: MatSlider;
@@ -1718,7 +1852,7 @@ function setValueByClick(
   input.focus();
   dispatchPointerEvent(inputElement, 'pointerup', x, y);
   dispatchEvent(input._hostElement, new Event('change'));
-  tick();
+  flush();
 }
 
 /** Slides the MatSlider's thumb to the given value. */

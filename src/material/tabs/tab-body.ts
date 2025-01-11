@@ -3,34 +3,30 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
+import {AnimationEvent} from '@angular/animations';
+import {Direction, Directionality} from '@angular/cdk/bidi';
+import {CdkPortalOutlet, TemplatePortal} from '@angular/cdk/portal';
+import {CdkScrollable} from '@angular/cdk/scrolling';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  ComponentFactoryResolver,
   Directive,
   ElementRef,
   EventEmitter,
-  forwardRef,
-  Inject,
   Input,
   OnDestroy,
   OnInit,
-  Optional,
   Output,
   ViewChild,
-  ViewContainerRef,
   ViewEncapsulation,
+  inject,
 } from '@angular/core';
-import {CdkPortalOutlet, TemplatePortal} from '@angular/cdk/portal';
-import {Direction, Directionality} from '@angular/cdk/bidi';
-import {DOCUMENT} from '@angular/common';
 import {Subject, Subscription} from 'rxjs';
-import {distinctUntilChanged, startWith} from 'rxjs/operators';
-import {AnimationEvent} from '@angular/animations';
+import {startWith} from 'rxjs/operators';
 import {matTabsAnimations} from './tabs-animations';
 
 /**
@@ -41,18 +37,17 @@ import {matTabsAnimations} from './tabs-animations';
   selector: '[matTabBodyHost]',
 })
 export class MatTabBodyPortal extends CdkPortalOutlet implements OnInit, OnDestroy {
+  private _host = inject(MatTabBody);
+
   /** Subscription to events for when the tab body begins centering. */
   private _centeringSub = Subscription.EMPTY;
   /** Subscription to events for when the tab body finishes leaving from center position. */
   private _leavingSub = Subscription.EMPTY;
 
-  constructor(
-    componentFactoryResolver: ComponentFactoryResolver,
-    viewContainerRef: ViewContainerRef,
-    @Inject(forwardRef(() => MatTabBody)) private _host: MatTabBody,
-    @Inject(DOCUMENT) _document: any,
-  ) {
-    super(componentFactoryResolver, viewContainerRef, _document);
+  constructor(...args: unknown[]);
+
+  constructor() {
+    super();
   }
 
   /** Set initial visibility or set up subscription for changing visibility. */
@@ -62,7 +57,7 @@ export class MatTabBodyPortal extends CdkPortalOutlet implements OnInit, OnDestr
     this._centeringSub = this._host._beforeCentering
       .pipe(startWith(this._host._isCenterPosition(this._host._position)))
       .subscribe((isCentering: boolean) => {
-        if (isCentering && !this.hasAttached()) {
+        if (this._host._content && isCentering && !this.hasAttached()) {
           this.attach(this._host._content);
         }
       });
@@ -106,7 +101,7 @@ export type MatTabBodyPositionState =
 @Component({
   selector: 'mat-tab-body',
   templateUrl: 'tab-body.html',
-  styleUrls: ['tab-body.css'],
+  styleUrl: 'tab-body.css',
   encapsulation: ViewEncapsulation.None,
   // tslint:disable-next-line:validate-decorators
   changeDetection: ChangeDetectionStrategy.Default,
@@ -114,8 +109,12 @@ export type MatTabBodyPositionState =
   host: {
     'class': 'mat-mdc-tab-body',
   },
+  imports: [MatTabBodyPortal, CdkScrollable],
 })
 export class MatTabBody implements OnInit, OnDestroy {
+  private _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private _dir = inject(Directionality, {optional: true});
+
   /** Current position of the tab-body in the tab-group. Zero means that the tab is visible. */
   private _positionIndex: number;
 
@@ -164,36 +163,27 @@ export class MatTabBody implements OnInit, OnDestroy {
     this._computePositionAnimationState();
   }
 
-  constructor(
-    private _elementRef: ElementRef<HTMLElement>,
-    @Optional() private _dir: Directionality,
-    changeDetectorRef: ChangeDetectorRef,
-  ) {
-    if (_dir) {
-      this._dirChangeSubscription = _dir.change.subscribe((dir: Direction) => {
+  constructor(...args: unknown[]);
+
+  constructor() {
+    if (this._dir) {
+      const changeDetectorRef = inject(ChangeDetectorRef);
+      this._dirChangeSubscription = this._dir.change.subscribe((dir: Direction) => {
         this._computePositionAnimationState(dir);
         changeDetectorRef.markForCheck();
       });
     }
 
-    // Ensure that we get unique animation events, because the `.done` callback can get
-    // invoked twice in some browsers. See https://github.com/angular/angular/issues/24084.
-    this._translateTabComplete
-      .pipe(
-        distinctUntilChanged((x, y) => {
-          return x.fromState === y.fromState && x.toState === y.toState;
-        }),
-      )
-      .subscribe(event => {
-        // If the transition to the center is complete, emit an event.
-        if (this._isCenterPosition(event.toState) && this._isCenterPosition(this._position)) {
-          this._onCentered.emit();
-        }
+    this._translateTabComplete.subscribe(event => {
+      // If the transition to the center is complete, emit an event.
+      if (this._isCenterPosition(event.toState) && this._isCenterPosition(this._position)) {
+        this._onCentered.emit();
+      }
 
-        if (this._isCenterPosition(event.fromState) && !this._isCenterPosition(this._position)) {
-          this._afterLeavingCenter.emit();
-        }
-      });
+      if (this._isCenterPosition(event.fromState) && !this._isCenterPosition(this._position)) {
+        this._afterLeavingCenter.emit();
+      }
+    });
   }
 
   /**

@@ -3,32 +3,39 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
-import {ChangeDetectorRef, Component, ElementRef, Inject, ViewEncapsulation} from '@angular/core';
-import {CommonModule, DOCUMENT} from '@angular/common';
 import {Direction, Directionality} from '@angular/cdk/bidi';
-import {MatSidenavModule} from '@angular/material/sidenav';
-import {MatListModule} from '@angular/material/list';
+import {DOCUMENT} from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  NgZone,
+  ViewEncapsulation,
+  inject,
+  ɵNoopNgZone,
+} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
-import {RouterModule} from '@angular/router';
-import {MatIconModule} from '@angular/material/icon';
+import {MatIconModule, MatIconRegistry} from '@angular/material/icon';
+import {MatListModule} from '@angular/material/list';
+import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatToolbarModule} from '@angular/material/toolbar';
-import {MatTooltipModule} from '@angular/material/tooltip';
-import {DevAppDirectionality} from './dev-app-directionality';
-import {DevAppRippleOptions} from './ripple-options';
+import {MatTooltip, MatTooltipModule} from '@angular/material/tooltip';
+import {RouterModule} from '@angular/router';
 import {getAppState, setAppState} from './dev-app-state';
+import {DevAppRippleOptions} from './ripple-options';
+import {DevAppDirectionality} from './dev-app-directionality';
 
 /** Root component for the dev-app demos. */
 @Component({
   selector: 'dev-app-layout',
   templateUrl: 'dev-app-layout.html',
-  styleUrls: ['dev-app-layout.css'],
+  styleUrl: 'dev-app-layout.css',
   encapsulation: ViewEncapsulation.None,
-  standalone: true,
   imports: [
-    CommonModule,
     MatButtonModule,
     MatIconModule,
     MatListModule,
@@ -37,8 +44,16 @@ import {getAppState, setAppState} from './dev-app-state';
     MatTooltipModule,
     RouterModule,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DevAppLayout {
+  private _element = inject<ElementRef<HTMLElement>>(ElementRef);
+  private _rippleOptions = inject(DevAppRippleOptions);
+  private _dir = inject(Directionality) as DevAppDirectionality;
+  private _changeDetectorRef = inject(ChangeDetectorRef);
+  private _document = inject(DOCUMENT);
+  private _iconRegistry = inject(MatIconRegistry);
+
   state = getAppState();
   navItems = [
     {name: 'Examples', route: '/examples'},
@@ -93,6 +108,8 @@ export class DevAppLayout {
     {name: 'Table Scroll Container', route: '/table-scroll-container'},
     {name: 'Table', route: '/table'},
     {name: 'Tabs', route: '/tabs'},
+    {name: 'Theme', route: '/theme'},
+    {name: 'Timepicker', route: '/timepicker'},
     {name: 'Toolbar', route: '/toolbar'},
     {name: 'Tooltip', route: '/tooltip'},
     {name: 'Tree', route: '/tree'},
@@ -102,25 +119,32 @@ export class DevAppLayout {
   ];
 
   /** List of possible global density scale values. */
-  private _densityScales = [0, -1, -2, -3, 'minimum', 'maximum'];
+  private _densityScales = [0, -1, -2, -3, -4, 'minimum', 'maximum'];
 
-  constructor(
-    private _element: ElementRef<HTMLElement>,
-    private _rippleOptions: DevAppRippleOptions,
-    @Inject(Directionality) private _dir: DevAppDirectionality,
-    private _changeDetectorRef: ChangeDetectorRef,
-    @Inject(DOCUMENT) private _document: Document,
-  ) {
+  private _ngZone = inject(NgZone);
+
+  readonly isZoneless = this._ngZone instanceof ɵNoopNgZone;
+
+  constructor() {
     this.toggleTheme(this.state.darkTheme);
+    this.toggleSystemTheme(this.state.systemTheme);
     this.toggleStrongFocus(this.state.strongFocusEnabled);
     this.toggleDensity(Math.max(this._densityScales.indexOf(this.state.density), 0));
     this.toggleRippleDisabled(this.state.rippleDisabled);
     this.toggleDirection(this.state.direction);
+    this.toggleM3(this.state.m3Enabled);
+    this.toggleColorApiBackCompat(this.state.colorApiBackCompat);
   }
 
   toggleTheme(value = !this.state.darkTheme) {
     this.state.darkTheme = value;
     this._document.body.classList.toggle('demo-unicorn-dark-theme', value);
+    setAppState(this.state);
+  }
+
+  toggleSystemTheme(value = !this.state.systemTheme) {
+    this.state.systemTheme = value;
+    this._document.body.classList.toggle('demo-experimental-theme', value);
     setAppState(this.state);
   }
 
@@ -134,19 +158,31 @@ export class DevAppLayout {
     setAppState(this.state);
   }
 
+  toggleZoneless(value = !this.isZoneless) {
+    this.state.zoneless = value;
+    setAppState(this.state);
+    location.reload();
+  }
+
   toggleAnimations() {
     this.state.animations = !this.state.animations;
     setAppState(this.state);
     location.reload();
   }
 
-  toggleDensity(index?: number) {
+  toggleDensity(index?: number, tooltipInstance?: MatTooltip) {
     if (index == null) {
       index = (this._densityScales.indexOf(this.state.density) + 1) % this._densityScales.length;
     }
 
     this.state.density = this._densityScales[index];
     setAppState(this.state);
+
+    // Keep the tooltip open so we can see what the density was changed to. Ideally we'd
+    // always show the density in a badge, but the M2 badge is too large for the toolbar.
+    if (tooltipInstance) {
+      requestAnimationFrame(() => tooltipInstance.show(0));
+    }
   }
 
   toggleRippleDisabled(value = !this.state.rippleDisabled) {
@@ -168,9 +204,19 @@ export class DevAppLayout {
       (document.getElementById('theme-styles') as HTMLLinkElement).href = value
         ? 'theme-m3.css'
         : 'theme.css';
-      this.state.m3Enabled = value;
-      setAppState(this.state);
     }
+
+    this._iconRegistry.setDefaultFontSetClass(
+      value ? 'material-symbols-outlined' : 'material-icons',
+    );
+    this.state.m3Enabled = value;
+    setAppState(this.state);
+  }
+
+  toggleColorApiBackCompat(value = !this.state.colorApiBackCompat) {
+    this.state.colorApiBackCompat = value;
+    this._document.body.classList.toggle('demo-color-api-back-compat', value);
+    setAppState(this.state);
   }
 
   getDensityClass() {
