@@ -1,5 +1,4 @@
 import {Component, ViewEncapsulation} from '@angular/core';
-import {NgFor, NgIf} from '@angular/common';
 import {MatListModule} from '@angular/material/list';
 import {RouterLink, RouterOutlet} from '@angular/router';
 
@@ -7,8 +6,7 @@ import {RouterLink, RouterOutlet} from '@angular/router';
   selector: 'e2e-app',
   templateUrl: 'e2e-app.html',
   encapsulation: ViewEncapsulation.None,
-  standalone: true,
-  imports: [MatListModule, NgIf, NgFor, RouterLink, RouterOutlet],
+  imports: [MatListModule, RouterLink, RouterOutlet],
 })
 export class E2eApp {
   showLinks = false;

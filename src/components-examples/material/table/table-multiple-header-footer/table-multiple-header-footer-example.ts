@@ -12,9 +12,8 @@ interface Transaction {
  */
 @Component({
   selector: 'table-multiple-header-footer-example',
-  styleUrls: ['table-multiple-header-footer-example.css'],
+  styleUrl: 'table-multiple-header-footer-example.css',
   templateUrl: 'table-multiple-header-footer-example.html',
-  standalone: true,
   imports: [MatTableModule, CurrencyPipe],
 })
 export class TableMultipleHeaderFooterExample {

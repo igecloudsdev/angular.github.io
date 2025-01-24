@@ -13,9 +13,8 @@ import {
 @Component({
   selector: 'cdk-menu-menubar-example',
   exportAs: 'cdkMenuMenubarExample',
-  styleUrls: ['cdk-menu-menubar-example.css'],
+  styleUrl: 'cdk-menu-menubar-example.css',
   templateUrl: 'cdk-menu-menubar-example.html',
-  standalone: true,
   imports: [
     CdkMenuBar,
     CdkMenuItem,

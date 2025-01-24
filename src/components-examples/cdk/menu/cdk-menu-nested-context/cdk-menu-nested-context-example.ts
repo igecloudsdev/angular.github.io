@@ -5,9 +5,8 @@ import {CdkMenu, CdkMenuItem, CdkContextMenuTrigger} from '@angular/cdk/menu';
 @Component({
   selector: 'cdk-menu-nested-context-example',
   exportAs: 'cdkMenuNestedContextExample',
-  styleUrls: ['cdk-menu-nested-context-example.css'],
+  styleUrl: 'cdk-menu-nested-context-example.css',
   templateUrl: 'cdk-menu-nested-context-example.html',
-  standalone: true,
   imports: [CdkContextMenuTrigger, CdkMenu, CdkMenuItem],
 })
 export class CdkMenuNestedContextExample {}

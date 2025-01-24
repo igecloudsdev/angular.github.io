@@ -1,5 +1,4 @@
 import {Component} from '@angular/core';
-import {NgFor} from '@angular/common';
 import {
   CdkMenu,
   CdkMenuItem,
@@ -12,15 +11,13 @@ import {
 /** @title Stateful Menu with Standalone Trigger. */
 @Component({
   selector: 'cdk-menu-standalone-stateful-menu-example',
-  styleUrls: ['cdk-menu-standalone-stateful-menu-example.css'],
+  styleUrl: 'cdk-menu-standalone-stateful-menu-example.css',
   templateUrl: 'cdk-menu-standalone-stateful-menu-example.html',
-  standalone: true,
   imports: [
     CdkMenuTrigger,
     CdkMenu,
     CdkMenuItemCheckbox,
     CdkMenuGroup,
-    NgFor,
     CdkMenuItemRadio,
     CdkMenuItem,
   ],

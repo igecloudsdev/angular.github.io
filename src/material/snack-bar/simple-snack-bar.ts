@@ -3,12 +3,11 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
-import {ChangeDetectionStrategy, Component, Inject, ViewEncapsulation} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {MatButtonModule} from '@angular/material/button';
+import {ChangeDetectionStrategy, Component, ViewEncapsulation, inject} from '@angular/core';
+import {MatButton} from '@angular/material/button';
 import {MatSnackBarRef} from './snack-bar-ref';
 import {MAT_SNACK_BAR_DATA} from './snack-bar-config';
 import {MatSnackBarAction, MatSnackBarActions, MatSnackBarLabel} from './snack-bar-content';
@@ -26,21 +25,21 @@ export interface TextOnlySnackBar {
 @Component({
   selector: 'simple-snack-bar',
   templateUrl: 'simple-snack-bar.html',
-  styleUrls: ['simple-snack-bar.css'],
+  styleUrl: 'simple-snack-bar.css',
   exportAs: 'matSnackBar',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatButtonModule, MatSnackBarLabel, MatSnackBarActions, MatSnackBarAction, CommonModule],
-  standalone: true,
+  imports: [MatButton, MatSnackBarLabel, MatSnackBarActions, MatSnackBarAction],
   host: {
     'class': 'mat-mdc-simple-snack-bar',
   },
 })
 export class SimpleSnackBar implements TextOnlySnackBar {
-  constructor(
-    public snackBarRef: MatSnackBarRef<SimpleSnackBar>,
-    @Inject(MAT_SNACK_BAR_DATA) public data: {message: string; action: string},
-  ) {}
+  snackBarRef = inject<MatSnackBarRef<SimpleSnackBar>>(MatSnackBarRef);
+  data = inject(MAT_SNACK_BAR_DATA);
+
+  constructor(...args: unknown[]);
+  constructor() {}
 
   /** Performs the action on the snack bar. */
   action(): void {

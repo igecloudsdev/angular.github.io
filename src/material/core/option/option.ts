@@ -3,10 +3,10 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
-import {FocusableOption, FocusOrigin} from '@angular/cdk/a11y';
+import {_IdGenerator, FocusableOption, FocusOrigin} from '@angular/cdk/a11y';
 import {ENTER, hasModifierKey, SPACE} from '@angular/cdk/keycodes';
 import {
   Component,
@@ -14,8 +14,6 @@ import {
   ChangeDetectionStrategy,
   ElementRef,
   ChangeDetectorRef,
-  Optional,
-  Inject,
   AfterViewChecked,
   OnDestroy,
   Input,
@@ -24,16 +22,17 @@ import {
   QueryList,
   ViewChild,
   booleanAttribute,
+  inject,
+  isSignal,
+  Signal,
 } from '@angular/core';
 import {Subject} from 'rxjs';
 import {MAT_OPTGROUP, MatOptgroup} from './optgroup';
 import {MatOptionParentComponent, MAT_OPTION_PARENT_COMPONENT} from './option-parent';
-
-/**
- * Option IDs need to be unique across components, so this counter exists outside of
- * the component definition.
- */
-let _uniqueIdCounter = 0;
+import {MatRipple} from '../ripple/ripple';
+import {MatPseudoCheckbox} from '../selection/pseudo-checkbox/pseudo-checkbox';
+import {_StructuralStylesLoader} from '../focus-indicators/structural-styles';
+import {_CdkPrivateStyleLoader, _VisuallyHiddenLoader} from '@angular/cdk/private';
 
 /** Event object emitted by MatOption when selected or deselected. */
 export class MatOptionSelectionChange<T = any> {
@@ -73,12 +72,19 @@ export class MatOptionSelectionChange<T = any> {
     '(keydown)': '_handleKeydown($event)',
     'class': 'mat-mdc-option mdc-list-item',
   },
-  styleUrls: ['option.css'],
+  styleUrl: 'option.css',
   templateUrl: 'option.html',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatPseudoCheckbox, MatRipple],
 })
 export class MatOption<T = any> implements FocusableOption, AfterViewChecked, OnDestroy {
+  private _element = inject<ElementRef<HTMLElement>>(ElementRef);
+  _changeDetectorRef = inject(ChangeDetectorRef);
+  private _parent = inject<MatOptionParentComponent>(MAT_OPTION_PARENT_COMPONENT, {optional: true});
+  group = inject<MatOptgroup>(MAT_OPTGROUP, {optional: true});
+
+  private _signalDisableRipple = false;
   private _selected = false;
   private _active = false;
   private _disabled = false;
@@ -98,7 +104,7 @@ export class MatOption<T = any> implements FocusableOption, AfterViewChecked, On
   @Input() value: T;
 
   /** The unique ID of the option. */
-  @Input() id: string = `mat-option-${_uniqueIdCounter++}`;
+  @Input() id: string = inject(_IdGenerator).getId('mat-option-');
 
   /** Whether the option is disabled. */
   @Input({transform: booleanAttribute})
@@ -111,7 +117,9 @@ export class MatOption<T = any> implements FocusableOption, AfterViewChecked, On
 
   /** Whether ripples for the option are disabled. */
   get disableRipple(): boolean {
-    return !!(this._parent && this._parent.disableRipple);
+    return this._signalDisableRipple
+      ? (this._parent!.disableRipple as Signal<boolean>)()
+      : !!this._parent?.disableRipple;
   }
 
   /** Whether to display checkmark for single-selection. */
@@ -129,12 +137,12 @@ export class MatOption<T = any> implements FocusableOption, AfterViewChecked, On
   /** Emits when the state of the option changes and any parents have to be notified. */
   readonly _stateChanges = new Subject<void>();
 
-  constructor(
-    private _element: ElementRef<HTMLElement>,
-    public _changeDetectorRef: ChangeDetectorRef,
-    @Optional() @Inject(MAT_OPTION_PARENT_COMPONENT) private _parent: MatOptionParentComponent,
-    @Optional() @Inject(MAT_OPTGROUP) public group: MatOptgroup,
-  ) {}
+  constructor(...args: unknown[]);
+  constructor() {
+    inject(_CdkPrivateStyleLoader).load(_StructuralStylesLoader);
+    inject(_CdkPrivateStyleLoader).load(_VisuallyHiddenLoader);
+    this._signalDisableRipple = !!this._parent && isSignal(this._parent.disableRipple);
+  }
 
   /**
    * Whether or not the option is currently active and ready to be selected.

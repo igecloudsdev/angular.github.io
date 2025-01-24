@@ -1,5 +1,5 @@
-import {HarnessLoader, TestKey} from '@angular/cdk/testing';
 import {COMMA} from '@angular/cdk/keycodes';
+import {HarnessLoader, TestKey} from '@angular/cdk/testing';
 import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
 import {Component} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
@@ -10,11 +10,10 @@ describe('MatChipInputHarness', () => {
   let fixture: ComponentFixture<ChipInputHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatChipsModule],
-      declarations: [ChipInputHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatChipsModule, ChipInputHarnessTest],
+    });
 
     fixture = TestBed.createComponent(ChipInputHarnessTest);
     fixture.detectChanges();
@@ -44,6 +43,7 @@ describe('MatChipInputHarness', () => {
     expect(await harness.isRequired()).toBe(false);
 
     fixture.componentInstance.required = true;
+    fixture.changeDetectorRef.markForCheck();
     expect(await harness.isRequired()).toBe(true);
   });
 
@@ -94,6 +94,7 @@ describe('MatChipInputHarness', () => {
       <input [matChipInputFor]="grid2" disabled />
     </mat-chip-grid>
   `,
+  imports: [MatChipsModule],
 })
 class ChipInputHarnessTest {
   required = false;

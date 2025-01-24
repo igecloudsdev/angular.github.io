@@ -3,19 +3,19 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Component, inject, ViewChild} from '@angular/core';
-import {FormControl, NgModel, FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {CommonModule} from '@angular/common';
+import {JsonPipe} from '@angular/common';
+import {ChangeDetectionStrategy, Component, inject, ViewChild} from '@angular/core';
+import {FormControl, FormsModule, NgModel, ReactiveFormsModule} from '@angular/forms';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
 import {MatCheckboxModule} from '@angular/material/checkbox';
-import {MatInputModule} from '@angular/material/input';
 import {ThemePalette} from '@angular/material/core';
-import {MatDialog, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
+import {MatDialog, MatDialogRef} from '@angular/material/dialog';
+import {MatInputModule} from '@angular/material/input';
 
 export interface State {
   code: string;
@@ -33,19 +33,18 @@ type DisableStateOption = 'none' | 'first-middle-last' | 'all';
 @Component({
   selector: 'autocomplete-demo',
   templateUrl: 'autocomplete-demo.html',
-  styleUrls: ['autocomplete-demo.css'],
-  standalone: true,
+  styleUrl: 'autocomplete-demo.css',
   imports: [
-    CommonModule,
+    JsonPipe,
     FormsModule,
     MatAutocompleteModule,
     MatButtonModule,
     MatCardModule,
     MatCheckboxModule,
-    MatDialogModule,
     MatInputModule,
     ReactiveFormsModule,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AutocompleteDemo {
   stateCtrl = new FormControl();
@@ -224,17 +223,16 @@ export class AutocompleteDemo {
         <mat-label>T-Shirt Size</mat-label>
         <input matInput [matAutocomplete]="tdAuto" [(ngModel)]="currentSize" name="size">
         <mat-autocomplete #tdAuto="matAutocomplete">
-          <mat-option *ngFor="let size of sizes" [value]="size">
-            {{size}}
-          </mat-option>
+          @for (size of sizes; track size) {
+            <mat-option [value]="size">{{size}}</mat-option>
+          }
         </mat-autocomplete>
       </mat-form-field>
 
       <button type="submit" mat-button>Close</button>
     </form>
   `,
-  styles: [
-    `
+  styles: `
     :host {
       display: block;
       padding: 20px;
@@ -246,19 +244,11 @@ export class AutocompleteDemo {
       align-items: flex-start;
     }
   `,
-  ],
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatAutocompleteModule,
-    MatButtonModule,
-    MatDialogModule,
-    MatInputModule,
-  ],
+  imports: [FormsModule, MatAutocompleteModule, MatButtonModule, MatInputModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AutocompleteDemoExampleDialog {
-  constructor(public dialogRef: MatDialogRef<AutocompleteDemoExampleDialog>) {}
+  dialogRef = inject<MatDialogRef<AutocompleteDemoExampleDialog>>(MatDialogRef);
 
   currentSize = '';
   sizes = ['S', 'M', 'L'];

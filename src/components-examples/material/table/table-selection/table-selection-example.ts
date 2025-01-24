@@ -28,9 +28,8 @@ const ELEMENT_DATA: PeriodicElement[] = [
  */
 @Component({
   selector: 'table-selection-example',
-  styleUrls: ['table-selection-example.css'],
+  styleUrl: 'table-selection-example.css',
   templateUrl: 'table-selection-example.html',
-  standalone: true,
   imports: [MatTableModule, MatCheckboxModule],
 })
 export class TableSelectionExample {

@@ -1,19 +1,18 @@
-import {Component} from '@angular/core';
-import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {HarnessLoader} from '@angular/cdk/testing';
 import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
-import {MatButtonToggleModule, MatButtonToggleAppearance} from '@angular/material/button-toggle';
+import {Component} from '@angular/core';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {MatButtonToggleAppearance, MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatButtonToggleGroupHarness} from './button-toggle-group-harness';
 
 describe('MatButtonToggleGroupHarness', () => {
   let fixture: ComponentFixture<ButtonToggleGroupHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatButtonToggleModule],
-      declarations: [ButtonToggleGroupHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatButtonToggleModule, ButtonToggleGroupHarnessTest],
+    });
 
     fixture = TestBed.createComponent(ButtonToggleGroupHarnessTest);
     fixture.detectChanges();
@@ -35,6 +34,7 @@ describe('MatButtonToggleGroupHarness', () => {
     const group = await loader.getHarness(MatButtonToggleGroupHarness);
     expect(await group.isDisabled()).toBe(false);
     fixture.componentInstance.disabled = true;
+    fixture.changeDetectorRef.markForCheck();
     expect(await group.isDisabled()).toBe(true);
   });
 
@@ -49,6 +49,7 @@ describe('MatButtonToggleGroupHarness', () => {
     expect(disabledGroups.length).toBe(0);
 
     fixture.componentInstance.disabled = true;
+    fixture.changeDetectorRef.markForCheck();
 
     enabledGroups = await loader.getAllHarnesses(
       MatButtonToggleGroupHarness.with({disabled: false}),
@@ -64,13 +65,15 @@ describe('MatButtonToggleGroupHarness', () => {
     const group = await loader.getHarness(MatButtonToggleGroupHarness);
     expect(await group.isVertical()).toBe(false);
     fixture.componentInstance.vertical = true;
+    fixture.changeDetectorRef.markForCheck();
     expect(await group.isVertical()).toBe(true);
   });
 
-  it('should get whether the group appearance', async () => {
+  it('should get the group appearance', async () => {
     const group = await loader.getHarness(MatButtonToggleGroupHarness);
     expect(await group.getAppearance()).toBe('standard');
     fixture.componentInstance.appearance = 'legacy';
+    fixture.changeDetectorRef.markForCheck();
     expect(await group.getAppearance()).toBe('legacy');
   });
 });
@@ -82,6 +85,7 @@ describe('MatButtonToggleGroupHarness', () => {
       <mat-button-toggle value="2">Two</mat-button-toggle>
     </mat-button-toggle-group>
   `,
+  imports: [MatButtonToggleModule],
 })
 class ButtonToggleGroupHarnessTest {
   disabled = false;

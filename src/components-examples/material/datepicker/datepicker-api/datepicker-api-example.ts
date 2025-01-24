@@ -1,22 +1,17 @@
-import {Component} from '@angular/core';
+import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
+import {provideNativeDateAdapter} from '@angular/material/core';
 import {MatDatepickerModule} from '@angular/material/datepicker';
-import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatNativeDateModule} from '@angular/material/core';
+import {MatInputModule} from '@angular/material/input';
 
 /** @title Datepicker open method */
 @Component({
   selector: 'datepicker-api-example',
   templateUrl: 'datepicker-api-example.html',
-  styleUrls: ['datepicker-api-example.css'],
-  standalone: true,
-  imports: [
-    MatFormFieldModule,
-    MatInputModule,
-    MatNativeDateModule,
-    MatDatepickerModule,
-    MatButtonModule,
-  ],
+  styleUrl: 'datepicker-api-example.css',
+  providers: [provideNativeDateAdapter()],
+  imports: [MatFormFieldModule, MatInputModule, MatDatepickerModule, MatButtonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DatepickerApiExample {}

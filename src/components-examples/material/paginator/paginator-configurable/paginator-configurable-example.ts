@@ -12,8 +12,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 @Component({
   selector: 'paginator-configurable-example',
   templateUrl: 'paginator-configurable-example.html',
-  styleUrls: ['paginator-configurable-example.css'],
-  standalone: true,
+  styleUrl: 'paginator-configurable-example.css',
   imports: [
     MatFormFieldModule,
     MatInputModule,

@@ -1,7 +1,7 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
-import {MatSlideToggleHarness} from '@angular/material/slide-toggle/testing';
 import {HarnessLoader} from '@angular/cdk/testing';
+import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {MatSlideToggleHarness} from '@angular/material/slide-toggle/testing';
 import {SlideToggleHarnessExample} from './slide-toggle-harness-example';
 
 describe('SlideToggleHarnessExample', () => {
@@ -41,6 +41,7 @@ describe('SlideToggleHarnessExample', () => {
 
   it('should toggle slide-toggle', async () => {
     fixture.componentInstance.disabled = false;
+    fixture.changeDetectorRef.markForCheck();
     const [checkedToggle, uncheckedToggle] = await loader.getAllHarnesses(MatSlideToggleHarness);
     await checkedToggle.toggle();
     await uncheckedToggle.toggle();

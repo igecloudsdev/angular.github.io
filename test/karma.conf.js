@@ -9,7 +9,6 @@ module.exports = config => {
     plugins: [
       require('karma-jasmine'),
       require('karma-browserstack-launcher'),
-      require('karma-sauce-launcher'),
       require('karma-sourcemap-loader'),
       {
         'middleware:fake-url': [
@@ -31,19 +30,26 @@ module.exports = config => {
     ],
     files: [
       {pattern: 'node_modules/reflect-metadata/Reflect.js', included: true, watched: false},
-      {pattern: 'node_modules/zone.js/dist/zone.min.js', included: true, watched: false},
-      {pattern: 'node_modules/zone.js/dist/proxy.min.js', included: true, watched: false},
-      {pattern: 'node_modules/zone.js/dist/sync-test.js', included: true, watched: false},
-      {pattern: 'node_modules/zone.js/dist/jasmine-patch.min.js', included: true, watched: false},
-      {pattern: 'node_modules/zone.js/dist/async-test.js', included: true, watched: false},
-      {pattern: 'node_modules/zone.js/dist/fake-async-test.js', included: true, watched: false},
+      {pattern: 'node_modules/zone.js/bundles/zone.umd.min.js', included: true, watched: false},
+      {pattern: 'node_modules/zone.js/bundles/proxy.umd.min.js', included: true, watched: false},
+      {pattern: 'node_modules/zone.js/bundles/sync-test.umd.js', included: true, watched: false},
+      {
+        pattern: 'node_modules/zone.js/bundles/jasmine-patch.umd.min.js',
+        included: true,
+        watched: false,
+      },
+      {pattern: 'node_modules/zone.js/bundles/async-test.umd.js', included: true, watched: false},
+      {
+        pattern: 'node_modules/zone.js/bundles/fake-async-test.umd.js',
+        included: true,
+        watched: false,
+      },
       {
         pattern: 'node_modules/moment/min/moment-with-locales.min.js',
         included: false,
         watched: false,
       },
       {pattern: 'node_modules/luxon/build/amd/**/*', included: false, watched: false},
-      {pattern: 'node_modules/@material/*/dist/*', included: false, watched: false},
       {pattern: 'node_modules/kagekiri/**', included: false, watched: false},
 
       // is copied into the "dist/" folder so that the Karma config can use it.
@@ -52,7 +58,7 @@ module.exports = config => {
       // Include a Material theme in the test suite. Also include the MDC theme as
       // karma runs tests for the MDC prototype components as well.
       {
-        pattern: 'src/material/core/theming/prebuilt/indigo-pink.css',
+        pattern: 'src/material/core/theming/prebuilt/azure-blue.css',
         included: true,
         watched: true,
       },
@@ -64,16 +70,6 @@ module.exports = config => {
 
     reporters: ['dots'],
     autoWatch: false,
-
-    sauceLabs: {
-      testName: 'Angular Material Unit Tests',
-      startConnect: false,
-      recordVideo: false,
-      recordScreenshots: false,
-      idleTimeout: 1000,
-      commandTimeout: 600,
-      maxDuration: 5400,
-    },
 
     browserStack: {
       project: 'Angular Material Unit Tests',
@@ -127,12 +123,6 @@ module.exports = config => {
     if (testPlatform === 'browserstack') {
       config.browserStack.build = buildIdentifier;
       config.browserStack.tunnelIdentifier = tunnelIdentifier;
-    } else if (testPlatform === 'saucelabs') {
-      config.sauceLabs.build = buildIdentifier;
-      config.sauceLabs.tunnelIdentifier = tunnelIdentifier;
-      // Setup the saucelabs reporter so that we report back to Saucelabs once
-      // our tests finished.
-      config.reporters.push('saucelabs');
     }
 
     // If the test platform is not "local", browsers are launched externally and can take

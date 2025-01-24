@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, signal} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {HarnessLoader} from '@angular/cdk/testing';
 import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
@@ -10,11 +10,10 @@ describe('MatSlideToggleHarness', () => {
   let fixture: ComponentFixture<SlideToggleHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatSlideToggleModule, ReactiveFormsModule],
-      declarations: [SlideToggleHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatSlideToggleModule, ReactiveFormsModule, SlideToggleHarnessTest],
+    });
 
     fixture = TestBed.createComponent(SlideToggleHarnessTest);
     fixture.detectChanges();
@@ -129,7 +128,7 @@ describe('MatSlideToggleHarness', () => {
   });
 
   it('should toggle slide-toggle', async () => {
-    fixture.componentInstance.disabled = false;
+    fixture.componentInstance.disabled.set(false);
     const [checkedToggle, uncheckedToggle] = await loader.getAllHarnesses(MatSlideToggleHarness);
     await checkedToggle.toggle();
     await uncheckedToggle.toggle();
@@ -138,7 +137,7 @@ describe('MatSlideToggleHarness', () => {
   });
 
   it('should check slide-toggle', async () => {
-    fixture.componentInstance.disabled = false;
+    fixture.componentInstance.disabled.set(false);
     const [checkedToggle, uncheckedToggle] = await loader.getAllHarnesses(MatSlideToggleHarness);
     await checkedToggle.check();
     await uncheckedToggle.check();
@@ -147,7 +146,7 @@ describe('MatSlideToggleHarness', () => {
   });
 
   it('should uncheck slide-toggle', async () => {
-    fixture.componentInstance.disabled = false;
+    fixture.componentInstance.disabled.set(false);
     const [checkedToggle, uncheckedToggle] = await loader.getAllHarnesses(MatSlideToggleHarness);
     await checkedToggle.uncheck();
     await uncheckedToggle.uncheck();
@@ -161,6 +160,17 @@ describe('MatSlideToggleHarness', () => {
     await disabledToggle.toggle();
     expect(await disabledToggle.isChecked()).toBe(false);
   });
+
+  it('should get disabled state when disabledInteractive is enabled', async () => {
+    fixture.componentInstance.disabled.set(false);
+    fixture.componentInstance.disabledInteractive.set(true);
+
+    const toggle = await loader.getHarness(MatSlideToggleHarness.with({label: 'Second'}));
+    expect(await toggle.isDisabled()).toBe(false);
+
+    fixture.componentInstance.disabled.set(true);
+    expect(await toggle.isDisabled()).toBe(true);
+  });
 });
 
 @Component({
@@ -172,13 +182,18 @@ describe('MatSlideToggleHarness', () => {
           aria-label="First slide-toggle">
         First
       </mat-slide-toggle>
-      <mat-slide-toggle [disabled]="disabled" aria-labelledby="second-label">
+      <mat-slide-toggle
+        [disabled]="disabled()"
+        [disabledInteractive]="disabledInteractive()"
+        aria-labelledby="second-label">
         Second
       </mat-slide-toggle>
       <span id="second-label">Second slide-toggle</span>
   `,
+  imports: [MatSlideToggleModule, ReactiveFormsModule],
 })
 class SlideToggleHarnessTest {
   ctrl = new FormControl(true);
-  disabled = true;
+  disabled = signal(true);
+  disabledInteractive = signal(false);
 }

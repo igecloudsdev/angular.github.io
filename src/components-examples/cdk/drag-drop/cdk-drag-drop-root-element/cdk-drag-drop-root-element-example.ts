@@ -5,6 +5,7 @@ import {
   AfterViewInit,
   ViewContainerRef,
   OnDestroy,
+  inject,
 } from '@angular/core';
 import {Overlay, OverlayRef} from '@angular/cdk/overlay';
 import {TemplatePortal} from '@angular/cdk/portal';
@@ -16,16 +17,16 @@ import {CdkDrag} from '@angular/cdk/drag-drop';
 @Component({
   selector: 'cdk-drag-drop-root-element-example',
   templateUrl: 'cdk-drag-drop-root-element-example.html',
-  styleUrls: ['cdk-drag-drop-root-element-example.css'],
-  standalone: true,
+  styleUrl: 'cdk-drag-drop-root-element-example.css',
   imports: [CdkDrag],
 })
 export class CdkDragDropRootElementExample implements AfterViewInit, OnDestroy {
+  private _overlay = inject(Overlay);
+  private _viewContainerRef = inject(ViewContainerRef);
+
   @ViewChild(TemplateRef) _dialogTemplate: TemplateRef<any>;
   private _overlayRef: OverlayRef;
   private _portal: TemplatePortal;
-
-  constructor(private _overlay: Overlay, private _viewContainerRef: ViewContainerRef) {}
 
   ngAfterViewInit() {
     this._portal = new TemplatePortal(this._dialogTemplate, this._viewContainerRef);

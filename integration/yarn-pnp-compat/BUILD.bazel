@@ -1,6 +1,6 @@
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
-load("//tools:defaults.bzl", "node_integration_test")
 load("//tools:integration.bzl", "CLI_PROJECT_MAPPINGS")
+load("//tools:defaults.bzl", "node_integration_test")
 
 npmPackageMappings = dicts.add(
     dicts.omit(

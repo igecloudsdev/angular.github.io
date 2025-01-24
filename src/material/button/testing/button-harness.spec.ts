@@ -13,11 +13,10 @@ describe('MatButtonHarness', () => {
   let loader: HarnessLoader;
   let platform: Platform;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatButtonModule, MatIconModule, PlatformModule],
-      declarations: [ButtonHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatButtonModule, MatIconModule, PlatformModule, ButtonHarnessTest],
+    });
 
     fixture = TestBed.createComponent(ButtonHarnessTest);
     fixture.detectChanges();
@@ -175,6 +174,7 @@ describe('MatButtonHarness', () => {
     <a id="anchor-fab" mat-fab>Fab anchor</a>
     <a id="anchor-mini-fab" mat-mini-fab>Mini Fab anchor</a>
   `,
+  imports: [MatButtonModule, MatIconModule, PlatformModule],
 })
 class ButtonHarnessTest {
   disabled = true;

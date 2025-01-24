@@ -28,9 +28,8 @@ const ELEMENT_DATA: PeriodicElement[] = [
  */
 @Component({
   selector: 'cdk-table-fixed-layout-example',
-  styleUrls: ['cdk-table-fixed-layout-example.css'],
+  styleUrl: 'cdk-table-fixed-layout-example.css',
   templateUrl: 'cdk-table-fixed-layout-example.html',
-  standalone: true,
   imports: [CdkTableModule],
 })
 export class CdkTableFixedLayoutExample {

@@ -14,11 +14,10 @@ export class CustomVirtualScrollStrategy extends FixedSizeVirtualScrollStrategy 
 /** @title Virtual scroll with a custom strategy */
 @Component({
   selector: 'cdk-virtual-scroll-custom-strategy-example',
-  styleUrls: ['cdk-virtual-scroll-custom-strategy-example.css'],
+  styleUrl: 'cdk-virtual-scroll-custom-strategy-example.css',
   templateUrl: 'cdk-virtual-scroll-custom-strategy-example.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [{provide: VIRTUAL_SCROLL_STRATEGY, useClass: CustomVirtualScrollStrategy}],
-  standalone: true,
   imports: [ScrollingModule],
 })
 export class CdkVirtualScrollCustomStrategyExample {

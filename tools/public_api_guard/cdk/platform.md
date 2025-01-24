@@ -5,6 +5,11 @@
 ```ts
 
 import * as i0 from '@angular/core';
+import { ListenerOptions } from '@angular/core';
+import { Renderer2 } from '@angular/core';
+
+// @public
+export function _bindEventWithOptions(renderer: Renderer2, target: EventTarget, eventName: string, callback: (event: any) => boolean | void, options: ListenerOptions): () => void;
 
 // @public
 export function _getEventTarget<T extends EventTarget>(event: Event): T | null;
@@ -29,7 +34,7 @@ export function normalizePassiveListenerOptions(options: AddEventListenerOptions
 
 // @public
 export class Platform {
-    constructor(_platformId: Object);
+    constructor(..._args: unknown[]);
     ANDROID: boolean;
     BLINK: boolean;
     EDGE: boolean;
@@ -56,7 +61,7 @@ export class PlatformModule {
 }
 
 // @public
-export const enum RtlScrollAxisType {
+export enum RtlScrollAxisType {
     INVERTED = 2,
     NEGATED = 1,
     NORMAL = 0

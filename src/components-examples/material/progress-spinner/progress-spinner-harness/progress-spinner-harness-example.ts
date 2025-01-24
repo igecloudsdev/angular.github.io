@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, signal} from '@angular/core';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 
 /**
@@ -7,9 +7,8 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 @Component({
   selector: 'progress-spinner-harness-example',
   templateUrl: 'progress-spinner-harness-example.html',
-  standalone: true,
   imports: [MatProgressSpinnerModule],
 })
 export class ProgressSpinnerHarnessExample {
-  value: number;
+  value = signal(0);
 }

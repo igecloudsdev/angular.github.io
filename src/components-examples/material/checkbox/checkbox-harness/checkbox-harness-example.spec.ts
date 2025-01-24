@@ -1,7 +1,7 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
-import {MatCheckboxHarness} from '@angular/material/checkbox/testing';
 import {HarnessLoader} from '@angular/cdk/testing';
+import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {MatCheckboxHarness} from '@angular/material/checkbox/testing';
 import {CheckboxHarnessExample} from './checkbox-harness-example';
 
 describe('CheckboxHarnessExample', () => {
@@ -38,7 +38,8 @@ describe('CheckboxHarnessExample', () => {
   });
 
   it('should toggle checkbox', async () => {
-    fixture.componentInstance.disabled = false;
+    fixture.componentRef.setInput('disabled', false);
+    fixture.changeDetectorRef.markForCheck();
     const [checkedCheckbox, uncheckedCheckbox] = await loader.getAllHarnesses(MatCheckboxHarness);
     await checkedCheckbox.toggle();
     await uncheckedCheckbox.toggle();

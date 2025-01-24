@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {ComponentRef} from '@angular/core';
@@ -47,7 +47,7 @@ export class MatBottomSheetRef<T = any, R = any> {
   private _result: R | undefined;
 
   /** Handle to the timeout that's running as a fallback in case the exit animation doesn't fire. */
-  private _closeFallbackTimeout: number;
+  private _closeFallbackTimeout: ReturnType<typeof setTimeout>;
 
   constructor(
     private _ref: DialogRef<R, T>,

@@ -8,8 +8,7 @@ import {MatSidenavModule} from '@angular/material/sidenav';
 @Component({
   selector: 'sidenav-backdrop-example',
   templateUrl: 'sidenav-backdrop-example.html',
-  styleUrls: ['sidenav-backdrop-example.css'],
-  standalone: true,
+  styleUrl: 'sidenav-backdrop-example.css',
   imports: [MatSidenavModule, MatFormFieldModule, MatSelectModule, MatButtonModule],
 })
 export class SidenavBackdropExample {}

@@ -3,29 +3,23 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
-import {FocusMonitor, FocusTrapFactory, InteractivityChecker} from '@angular/cdk/a11y';
-import {OverlayRef} from '@angular/cdk/overlay';
-import {DOCUMENT} from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   ComponentRef,
-  ElementRef,
   EventEmitter,
-  Inject,
-  NgZone,
   OnDestroy,
-  Optional,
   ViewEncapsulation,
+  ANIMATION_MODULE_TYPE,
+  inject,
 } from '@angular/core';
 import {MatDialogConfig} from './dialog-config';
-import {ANIMATION_MODULE_TYPE} from '@angular/platform-browser/animations';
 import {CdkDialogContainer} from '@angular/cdk/dialog';
 import {coerceNumberProperty} from '@angular/cdk/coercion';
-import {ComponentPortal, PortalModule} from '@angular/cdk/portal';
+import {CdkPortalOutlet, ComponentPortal} from '@angular/cdk/portal';
 
 /** Event that captures the state of dialog container animations. */
 interface LegacyDialogAnimationEvent {
@@ -51,13 +45,12 @@ export const CLOSE_ANIMATION_DURATION = 75;
 @Component({
   selector: 'mat-dialog-container',
   templateUrl: 'dialog-container.html',
-  styleUrls: ['dialog.css'],
+  styleUrl: 'dialog.css',
   encapsulation: ViewEncapsulation.None,
   // Disabled for consistency with the non-MDC dialog container.
   // tslint:disable-next-line:validate-decorators
   changeDetection: ChangeDetectionStrategy.Default,
-  standalone: true,
-  imports: [PortalModule],
+  imports: [CdkPortalOutlet],
   host: {
     'class': 'mat-mdc-dialog-container mdc-dialog',
     'tabindex': '-1',
@@ -68,14 +61,20 @@ export const CLOSE_ANIMATION_DURATION = 75;
     '[attr.aria-label]': '_config.ariaLabel',
     '[attr.aria-describedby]': '_config.ariaDescribedBy || null',
     '[class._mat-animation-noopable]': '!_animationsEnabled',
+    '[class.mat-mdc-dialog-container-with-actions]': '_actionSectionCount > 0',
   },
 })
 export class MatDialogContainer extends CdkDialogContainer<MatDialogConfig> implements OnDestroy {
+  private _animationMode = inject(ANIMATION_MODULE_TYPE, {optional: true});
+
   /** Emits when an animation state changes. */
   _animationStateChanged = new EventEmitter<LegacyDialogAnimationEvent>();
 
   /** Whether animations are enabled. */
   _animationsEnabled: boolean = this._animationMode !== 'NoopAnimations';
+
+  /** Number of actions projected in the dialog. */
+  protected _actionSectionCount = 0;
 
   /** Host element of the dialog container component. */
   private _hostElement: HTMLElement = this._elementRef.nativeElement;
@@ -90,29 +89,6 @@ export class MatDialogContainer extends CdkDialogContainer<MatDialogConfig> impl
   /** Current timer for dialog animations. */
   private _animationTimer: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(
-    elementRef: ElementRef,
-    focusTrapFactory: FocusTrapFactory,
-    @Optional() @Inject(DOCUMENT) _document: any,
-    dialogConfig: MatDialogConfig,
-    interactivityChecker: InteractivityChecker,
-    ngZone: NgZone,
-    overlayRef: OverlayRef,
-    @Optional() @Inject(ANIMATION_MODULE_TYPE) private _animationMode?: string,
-    focusMonitor?: FocusMonitor,
-  ) {
-    super(
-      elementRef,
-      focusTrapFactory,
-      _document,
-      dialogConfig,
-      interactivityChecker,
-      ngZone,
-      overlayRef,
-      focusMonitor,
-    );
-  }
-
   protected override _contentAttached(): void {
     // Delegate to the original dialog-container initialization (i.e. saving the
     // previous element, setting up the focus trap and moving focus to the container).
@@ -124,9 +100,6 @@ export class MatDialogContainer extends CdkDialogContainer<MatDialogConfig> impl
     //   1. Foundation does not allow us to disable animations.
     //   2. Foundation contains unnecessary features we don't need and aren't
     //      tree-shakeable. e.g. background scrim, keyboard event handlers for ESC button.
-    //   3. Foundation uses unnecessary timers for animations to work around limitations
-    //      in React's `setState` mechanism.
-    //      https://github.com/material-components/material-components-web/pull/3682.
     this._startOpenAnimation();
   }
 
@@ -192,6 +165,15 @@ export class MatDialogContainer extends CdkDialogContainer<MatDialogConfig> impl
       // animations, the defer is applied here.
       Promise.resolve().then(() => this._finishDialogClose());
     }
+  }
+
+  /**
+   * Updates the number action sections.
+   * @param delta Increase/decrease in the number of sections.
+   */
+  _updateActionSectionCount(delta: number) {
+    this._actionSectionCount += delta;
+    this._changeDetectorRef.markForCheck();
   }
 
   /**
