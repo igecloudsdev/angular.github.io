@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {Component} from '@angular/core';
@@ -46,8 +46,7 @@ const ELEMENT_DATA: PeriodicElement[] = [
 @Component({
   selector: 'default-enabled-column-resize-flex-example',
   templateUrl: 'default-enabled-column-resize-flex-example.html',
-  styleUrls: ['default-enabled-column-resize-flex-example.css'],
-  standalone: true,
+  styleUrl: 'default-enabled-column-resize-flex-example.css',
   imports: [MatDefaultEnabledColumnResizeModule, MatTableModule],
 })
 export class DefaultEnabledColumnResizeFlexExample {

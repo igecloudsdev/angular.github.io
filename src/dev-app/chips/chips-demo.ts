@@ -3,22 +3,21 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Component, inject} from '@angular/core';
+import {LiveAnnouncer} from '@angular/cdk/a11y';
 import {COMMA, ENTER} from '@angular/cdk/keycodes';
-import {CommonModule} from '@angular/common';
-import {ThemePalette} from '@angular/material/core';
-import {MatChipInputEvent, MatChipEditedEvent, MatChipsModule} from '@angular/material/chips';
+import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
 import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatChipEditedEvent, MatChipInputEvent, MatChipsModule} from '@angular/material/chips';
+import {ThemePalette} from '@angular/material/core';
 import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatToolbarModule} from '@angular/material/toolbar';
 import {MatIconModule} from '@angular/material/icon';
-import {LiveAnnouncer} from '@angular/cdk/a11y';
+import {MatToolbarModule} from '@angular/material/toolbar';
 
 export interface Person {
   name: string;
@@ -32,10 +31,8 @@ export interface DemoColor {
 @Component({
   selector: 'chips-demo',
   templateUrl: 'chips-demo.html',
-  styleUrls: ['chips-demo.css'],
-  standalone: true,
+  styleUrl: 'chips-demo.css',
   imports: [
-    CommonModule,
     FormsModule,
     MatButtonModule,
     MatCardModule,
@@ -46,6 +43,7 @@ export interface DemoColor {
     MatToolbarModule,
     ReactiveFormsModule,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChipsDemo {
   visible = true;

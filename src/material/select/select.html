@@ -1,14 +1,21 @@
 <div cdk-overlay-origin
      class="mat-mdc-select-trigger"
-     (click)="toggle()"
+     (click)="open()"
      #fallbackOverlayOrigin="cdkOverlayOrigin"
      #trigger>
-  <div class="mat-mdc-select-value" [ngSwitch]="empty" [attr.id]="_valueId">
-    <span class="mat-mdc-select-placeholder mat-mdc-select-min-line" *ngSwitchCase="true">{{placeholder}}</span>
-    <span class="mat-mdc-select-value-text" *ngSwitchCase="false" [ngSwitch]="!!customTrigger">
-      <span class="mat-mdc-select-min-line" *ngSwitchDefault>{{triggerValue}}</span>
-      <ng-content select="mat-select-trigger" *ngSwitchCase="true"></ng-content>
-    </span>
+
+  <div class="mat-mdc-select-value" [attr.id]="_valueId">
+    @if (empty) {
+      <span class="mat-mdc-select-placeholder mat-mdc-select-min-line">{{placeholder}}</span>
+    } @else {
+      <span class="mat-mdc-select-value-text">
+        @if (customTrigger) {
+          <ng-content select="mat-select-trigger"></ng-content>
+        } @else {
+          <span class="mat-mdc-select-min-line">{{triggerValue}}</span>
+        }
+      </span>
+    }
   </div>
 
   <div class="mat-mdc-select-arrow-wrapper">
@@ -26,27 +33,25 @@
   cdkConnectedOverlayLockPosition
   cdkConnectedOverlayHasBackdrop
   cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+  [cdkConnectedOverlayDisableClose]="true"
   [cdkConnectedOverlayPanelClass]="_overlayPanelClass"
   [cdkConnectedOverlayScrollStrategy]="_scrollStrategy"
   [cdkConnectedOverlayOrigin]="_preferredOverlayOrigin || fallbackOverlayOrigin"
-  [cdkConnectedOverlayOpen]="panelOpen"
   [cdkConnectedOverlayPositions]="_positions"
   [cdkConnectedOverlayWidth]="_overlayWidth"
   (backdropClick)="close()"
-  (attach)="_onAttached()"
-  (detach)="close()">
+  (overlayKeydown)="_handleOverlayKeydown($event)">
   <div
     #panel
     role="listbox"
     tabindex="-1"
     class="mat-mdc-select-panel mdc-menu-surface mdc-menu-surface--open {{ _getPanelTheme() }}"
+    [class.mat-select-panel-animations-enabled]="!_animationsDisabled"
     [attr.id]="id + '-panel'"
     [attr.aria-multiselectable]="multiple"
     [attr.aria-label]="ariaLabel || null"
     [attr.aria-labelledby]="_getPanelAriaLabelledby()"
     [ngClass]="panelClass"
-    [@transformPanel]="'showing'"
-    (@transformPanel.done)="_panelDoneAnimatingStream.next($event.toState)"
     (keydown)="_handleKeydown($event)">
     <ng-content></ng-content>
   </div>

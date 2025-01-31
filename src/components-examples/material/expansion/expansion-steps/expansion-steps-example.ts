@@ -1,11 +1,11 @@
-import {Component} from '@angular/core';
-import {MatDatepickerModule} from '@angular/material/datepicker';
+import {ChangeDetectionStrategy, Component, signal} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
-import {MatInputModule} from '@angular/material/input';
+import {provideNativeDateAdapter} from '@angular/material/core';
+import {MatDatepickerModule} from '@angular/material/datepicker';
+import {MatExpansionModule} from '@angular/material/expansion';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatIconModule} from '@angular/material/icon';
-import {MatExpansionModule} from '@angular/material/expansion';
-import {MatNativeDateModule} from '@angular/material/core';
+import {MatInputModule} from '@angular/material/input';
 
 /**
  * @title Expansion panel as accordion
@@ -13,8 +13,8 @@ import {MatNativeDateModule} from '@angular/material/core';
 @Component({
   selector: 'expansion-steps-example',
   templateUrl: 'expansion-steps-example.html',
-  styleUrls: ['expansion-steps-example.css'],
-  standalone: true,
+  styleUrl: 'expansion-steps-example.css',
+  providers: [provideNativeDateAdapter()],
   imports: [
     MatExpansionModule,
     MatIconModule,
@@ -22,21 +22,21 @@ import {MatNativeDateModule} from '@angular/material/core';
     MatInputModule,
     MatButtonModule,
     MatDatepickerModule,
-    MatNativeDateModule,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExpansionStepsExample {
-  step = 0;
+  step = signal(0);
 
   setStep(index: number) {
-    this.step = index;
+    this.step.set(index);
   }
 
   nextStep() {
-    this.step++;
+    this.step.update(i => i + 1);
   }
 
   prevStep() {
-    this.step--;
+    this.step.update(i => i - 1);
   }
 }

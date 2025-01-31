@@ -11,11 +11,10 @@ describe('MatIconHarness', () => {
   let fixture: ComponentFixture<IconHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatIconModule],
-      declarations: [IconHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatIconModule, IconHarnessTest],
+    });
 
     const registry = TestBed.inject(MatIconRegistry);
     const sanitizer = TestBed.inject(DomSanitizer);
@@ -115,5 +114,6 @@ describe('MatIconHarness', () => {
     <mat-icon>ligature_icon_with_additional_content <span class="fake-badge">Hello</span></mat-icon>
     <mat-icon><span>ligature_icon_with_indirect_name</span></mat-icon>
   `,
+  imports: [MatIconModule],
 })
 class IconHarnessTest {}

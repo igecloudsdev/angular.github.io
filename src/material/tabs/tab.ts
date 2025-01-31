@@ -3,35 +3,32 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {
   ChangeDetectionStrategy,
   Component,
   ContentChild,
-  Inject,
   InjectionToken,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
-  Optional,
   SimpleChanges,
   TemplateRef,
   ViewChild,
   ViewContainerRef,
   ViewEncapsulation,
+  booleanAttribute,
+  inject,
 } from '@angular/core';
 import {MatTabContent} from './tab-content';
 import {MAT_TAB, MatTabLabel} from './tab-label';
-import {CanDisable, mixinDisabled} from '@angular/material/core';
 import {TemplatePortal} from '@angular/cdk/portal';
 import {Subject} from 'rxjs';
-
-// Boilerplate for applying mixins to MatTab.
-/** @docs-private */
-const _MatTabMixinBase = mixinDisabled(class {});
+import {_CdkPrivateStyleLoader} from '@angular/cdk/private';
+import {_StructuralStylesLoader} from '@angular/material/core';
 
 /**
  * Used to provide a tab group to a tab without causing a circular dependency.
@@ -41,21 +38,30 @@ export const MAT_TAB_GROUP = new InjectionToken<any>('MAT_TAB_GROUP');
 
 @Component({
   selector: 'mat-tab',
-
   // Note that usually we'd go through a bit more trouble and set up another class so that
   // the inlined template of `MatTab` isn't duplicated, however the template is small enough
   // that creating the extra class will generate more code than just duplicating the template.
   templateUrl: 'tab.html',
-  inputs: ['disabled'],
   // tslint:disable-next-line:validate-decorators
   changeDetection: ChangeDetectionStrategy.Default,
   encapsulation: ViewEncapsulation.None,
   exportAs: 'matTab',
   providers: [{provide: MAT_TAB, useExisting: MatTab}],
+  host: {
+    // This element will be rendered on the server in order to support hydration.
+    // Hide it so it doesn't cause a layout shift when it's removed on the client.
+    'hidden': '',
+  },
 })
-export class MatTab extends _MatTabMixinBase implements CanDisable, OnInit, OnChanges, OnDestroy {
+export class MatTab implements OnInit, OnChanges, OnDestroy {
+  private _viewContainerRef = inject(ViewContainerRef);
+  _closestTabGroup = inject(MAT_TAB_GROUP, {optional: true});
+
+  /** whether the tab is disabled. */
+  @Input({transform: booleanAttribute})
+  disabled: boolean = false;
+
   /** Content for the tab label given by `<ng-template mat-tab-label>`. */
-  private _templateLabel: MatTabLabel;
   @ContentChild(MatTabLabel)
   get templateLabel(): MatTabLabel {
     return this._templateLabel;
@@ -63,6 +69,7 @@ export class MatTab extends _MatTabMixinBase implements CanDisable, OnInit, OnCh
   set templateLabel(value: MatTabLabel) {
     this._setTemplateLabelInput(value);
   }
+  private _templateLabel: MatTabLabel;
 
   /**
    * Template provided in the tab content that will be used if present, used to enable lazy-loading
@@ -86,16 +93,10 @@ export class MatTab extends _MatTabMixinBase implements CanDisable, OnInit, OnCh
    */
   @Input('aria-labelledby') ariaLabelledby: string;
 
-  /**
-   * Classes to be passed to the tab label inside the mat-tab-header container.
-   * Supports string and string array values, same as `ngClass`.
-   */
+  /** Classes to be passed to the tab label inside the mat-tab-header container. */
   @Input() labelClass: string | string[];
 
-  /**
-   * Classes to be passed to the tab mat-tab-body container.
-   * Supports string and string array values, same as `ngClass`.
-   */
+  /** Classes to be passed to the tab mat-tab-body container. */
   @Input() bodyClass: string | string[];
 
   /** Portal that will be the hosted content of the tab */
@@ -115,6 +116,7 @@ export class MatTab extends _MatTabMixinBase implements CanDisable, OnInit, OnCh
    */
   position: number | null = null;
 
+  // TODO(crisbeto): we no longer use this, but some internal apps appear to rely on it.
   /**
    * The initial relatively index origin of the tab if it was created and selected after there
    * was already a selected tab. Provides context of what position the tab should originate from.
@@ -126,11 +128,9 @@ export class MatTab extends _MatTabMixinBase implements CanDisable, OnInit, OnCh
    */
   isActive = false;
 
-  constructor(
-    private _viewContainerRef: ViewContainerRef,
-    @Inject(MAT_TAB_GROUP) @Optional() public _closestTabGroup: any,
-  ) {
-    super();
+  constructor(...args: unknown[]);
+  constructor() {
+    inject(_CdkPrivateStyleLoader).load(_StructuralStylesLoader);
   }
 
   ngOnChanges(changes: SimpleChanges): void {

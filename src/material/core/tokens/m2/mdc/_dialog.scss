@@ -1,6 +1,6 @@
 @use '../../../theming/inspection';
 @use '../../../style/sass-utils';
-@use '../../token-utils';
+@use '../../token-definition';
 
 // The prefix used to generate the fully qualified name for tokens in this file.
 $prefix: (mdc, dialog);
@@ -13,15 +13,13 @@ $prefix: (mdc, dialog);
 // our CSS.
 @function get-unthemable-tokens() {
   @return (
-    // Height of the container's elevation.
-    container-elevation: 24,
-    // Color of the elevation shadow.
-    container-shadow-color: #000,
     // Border radius of the container.
     container-shape: 4px,
     // =============================================================================================
     // = TOKENS NOT USED IN ANGULAR MATERIAL                                                       =
     // =============================================================================================
+    container-elevation: null,
+    container-shadow-color: null,
     with-divider-divider-height: null,
     with-divider-divider-color: null,
     with-icon-icon-size: null,
@@ -55,15 +53,21 @@ $prefix: (mdc, dialog);
 // Tokens that can be configured through Angular Material's color theming API.
 @function get-color-tokens($theme) {
   $is-dark: inspection.get-theme-type($theme) == dark;
-  $on-surface: if($is-dark, #fff, #000);
+
+  // Ideally we would derive all values directly from the theme, but it causes a lot of regressions
+  // internally. For now we fall back to the old hardcoded behavior only for internal apps.
+  $text-base: if(token-definition.$private-is-internal-build,
+    if($is-dark, #fff, #000),
+    inspection.get-theme-color($theme, foreground, text, 1)
+  );
 
   @return (
     // Background color of the container.
     container-color: inspection.get-theme-color($theme, background, dialog),
     // Color of the dialog header.
-    subhead-color: rgba($on-surface, 0.87),
+    subhead-color: sass-utils.safe-color-change($text-base, $alpha: 0.87),
     // Color of the dialog body text.
-    supporting-text-color: rgba($on-surface, 0.6),
+    supporting-text-color: sass-utils.safe-color-change($text-base, $alpha: 0.6),
   );
 }
 
@@ -95,8 +99,8 @@ $prefix: (mdc, dialog);
 @function get-token-slots() {
   @return sass-utils.deep-merge-all(
       get-unthemable-tokens(),
-      get-color-tokens(token-utils.$placeholder-color-config),
-      get-typography-tokens(token-utils.$placeholder-typography-config),
-      get-density-tokens(token-utils.$placeholder-density-config)
+      get-color-tokens(token-definition.$placeholder-color-config),
+      get-typography-tokens(token-definition.$placeholder-typography-config),
+      get-density-tokens(token-definition.$placeholder-density-config)
   );
 }

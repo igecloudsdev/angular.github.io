@@ -15,11 +15,10 @@ describe('MatTreeHarness', () => {
   let fixture: ComponentFixture<TreeHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatTreeModule],
-      declarations: [TreeHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatTreeModule, TreeHarnessTest],
+    });
 
     fixture = TestBed.createComponent(TreeHarnessTest);
     fixture.detectChanges();
@@ -227,7 +226,7 @@ interface ExampleFlatNode {
         {{node.name}}
       </mat-tree-node>
       <!-- This is the tree node template for expandable nodes -->
-      <mat-tree-node *matTreeNodeDef="let node;when: flatTreeHasChild" matTreeNodePadding>
+      <mat-tree-node *matTreeNodeDef="let node;when: flatTreeHasChild" matTreeNodePadding isExpandable>
         <button matTreeNodeToggle>
           Toggle
         </button>
@@ -236,11 +235,11 @@ interface ExampleFlatNode {
     </mat-tree>
     <mat-tree [dataSource]="nestedTreeDataSource" [treeControl]="nestedTreeControl">
       <!-- This is the tree node template for leaf nodes -->
-      <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle>
+      <mat-nested-tree-node *matTreeNodeDef="let node" matTreeNodeToggle>
         {{node.name}}
-      </mat-tree-node>
+      </mat-nested-tree-node>
       <!-- This is the tree node template for expandable nodes -->
-      <mat-nested-tree-node *matTreeNodeDef="let node; when: nestedTreeHasChild">
+      <mat-nested-tree-node *matTreeNodeDef="let node; when: nestedTreeHasChild" isExpandable>
         <button matTreeNodeToggle>
           Toggle
         </button>
@@ -251,6 +250,7 @@ interface ExampleFlatNode {
       </mat-nested-tree-node>
     </mat-tree>
   `,
+  imports: [MatTreeModule],
 })
 class TreeHarnessTest {
   private _transformer = (node: Node, level: number) => {

@@ -14,17 +14,16 @@ describe('MatStepperHarness', () => {
   let fixture: ComponentFixture<StepperHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatStepperModule, NoopAnimationsModule, ReactiveFormsModule],
-      declarations: [StepperHarnessTest],
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatStepperModule, NoopAnimationsModule, ReactiveFormsModule, StepperHarnessTest],
       providers: [
         {
           provide: STEPPER_GLOBAL_OPTIONS,
           useValue: {showError: true}, // Required so the error state shows up in tests.
         },
       ],
-    }).compileComponents();
+    });
 
     fixture = TestBed.createComponent(StepperHarnessTest);
     fixture.detectChanges();
@@ -302,6 +301,7 @@ describe('MatStepperHarness', () => {
       </mat-step>
     </mat-stepper>
   `,
+  imports: [MatStepperModule, ReactiveFormsModule],
 })
 class StepperHarnessTest {
   oneGroup = new FormGroup({

@@ -1,5 +1,5 @@
-import {Component, TemplateRef, ViewChild} from '@angular/core';
-import {MatDialog, MatDialogConfig, MatDialogModule} from '@angular/material/dialog';
+import {ChangeDetectionStrategy, Component, TemplateRef, inject, viewChild} from '@angular/core';
+import {MatDialog, MatDialogConfig} from '@angular/material/dialog';
 
 /**
  * @title Testing with MatDialogHarness
@@ -7,15 +7,14 @@ import {MatDialog, MatDialogConfig, MatDialogModule} from '@angular/material/dia
 @Component({
   selector: 'dialog-harness-example',
   templateUrl: 'dialog-harness-example.html',
-  standalone: true,
-  imports: [MatDialogModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DialogHarnessExample {
-  @ViewChild(TemplateRef) dialogTemplate: TemplateRef<any>;
+  readonly dialogTemplate = viewChild.required(TemplateRef);
 
-  constructor(readonly dialog: MatDialog) {}
+  readonly dialog = inject(MatDialog);
 
   open(config?: MatDialogConfig) {
-    return this.dialog.open(this.dialogTemplate, config);
+    return this.dialog.open(this.dialogTemplate(), config);
   }
 }

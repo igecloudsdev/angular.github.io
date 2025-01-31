@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, provideZoneChangeDetection} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {HarnessLoader} from '@angular/cdk/testing';
 import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
@@ -9,12 +9,16 @@ import {MatTooltipHarness} from './tooltip-harness';
 describe('MatTooltipHarness', () => {
   let fixture: ComponentFixture<TooltipHarnessTest>;
   let loader: HarnessLoader;
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideZoneChangeDetection()],
+    });
+  });
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatTooltipModule, NoopAnimationsModule],
-      declarations: [TooltipHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatTooltipModule, NoopAnimationsModule, TooltipHarnessTest],
+    });
 
     fixture = TestBed.createComponent(TooltipHarnessTest);
     fixture.detectChanges();
@@ -68,6 +72,7 @@ describe('MatTooltipHarness', () => {
     <button matTooltip='Static message' id='two'>Trigger 2</button>
     <button matTooltip='Disabled Tooltip' [matTooltipDisabled]='true' id='three'>Trigger 3</button>
   `,
+  imports: [MatTooltipModule],
 })
 class TooltipHarnessTest {
   message = 'Tooltip message';

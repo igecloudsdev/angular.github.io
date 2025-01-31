@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 /** Possible states of the lifecycle of a dialog. */
@@ -17,7 +17,7 @@ import {ESCAPE, hasModifierKey} from '@angular/cdk/keycodes';
 import {GlobalPositionStrategy} from '@angular/cdk/overlay';
 import {ComponentRef} from '@angular/core';
 
-export const enum MatDialogState {
+export enum MatDialogState {
   OPEN,
   CLOSING,
   CLOSED,
@@ -52,7 +52,7 @@ export class MatDialogRef<T, R = any> {
   private _result: R | undefined;
 
   /** Handle to the timeout that's running as a fallback in case the exit animation doesn't fire. */
-  private _closeFallbackTimeout: number;
+  private _closeFallbackTimeout: ReturnType<typeof setTimeout>;
 
   /** Current state of the dialog. */
   private _state = MatDialogState.OPEN;
@@ -71,6 +71,9 @@ export class MatDialogRef<T, R = any> {
   ) {
     this.disableClose = config.disableClose;
     this.id = _ref.id;
+
+    // Used to target panels specifically tied to dialogs.
+    _ref.addPanelClass('mat-mdc-dialog-panel');
 
     // Emit when opening animation completes
     _containerInstance._animationStateChanged

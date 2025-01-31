@@ -3,10 +3,18 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
-import {booleanAttribute, Directive, inject, Injectable, Input, OnDestroy} from '@angular/core';
+import {
+  booleanAttribute,
+  ChangeDetectorRef,
+  Directive,
+  inject,
+  Injectable,
+  Input,
+  OnDestroy,
+} from '@angular/core';
 import {Directionality} from '@angular/cdk/bidi';
 import {
   FlexibleConnectedPositionStrategy,
@@ -57,15 +65,14 @@ export type ContextMenuCoordinates = {x: number; y: number};
 @Directive({
   selector: '[cdkContextMenuTriggerFor]',
   exportAs: 'cdkContextMenuTriggerFor',
-  standalone: true,
   host: {
     '[attr.data-cdk-menu-stack-id]': 'null',
     '(contextmenu)': '_openOnContextMenu($event)',
   },
   inputs: [
-    'menuTemplateRef: cdkContextMenuTriggerFor',
-    'menuPosition: cdkContextMenuPosition',
-    'menuData: cdkContextMenuTriggerData',
+    {name: 'menuTemplateRef', alias: 'cdkContextMenuTriggerFor'},
+    {name: 'menuPosition', alias: 'cdkContextMenuPosition'},
+    {name: 'menuData', alias: 'cdkContextMenuTriggerData'},
   ],
   outputs: ['opened: cdkContextMenuOpened', 'closed: cdkContextMenuClosed'],
   providers: [
@@ -83,6 +90,8 @@ export class CdkContextMenuTrigger extends CdkMenuTriggerBase implements OnDestr
   /** The app's context menu tracking registry */
   private readonly _contextMenuTracker = inject(ContextMenuTracker);
 
+  private readonly _changeDetectorRef = inject(ChangeDetectorRef);
+
   /** Whether the context menu is disabled. */
   @Input({alias: 'cdkContextMenuDisabled', transform: booleanAttribute}) disabled: boolean = false;
 
@@ -97,6 +106,7 @@ export class CdkContextMenuTrigger extends CdkMenuTriggerBase implements OnDestr
    */
   open(coordinates: ContextMenuCoordinates) {
     this._open(null, coordinates);
+    this._changeDetectorRef.markForCheck();
   }
 
   /** Close the currently opened context menu. */
@@ -139,7 +149,7 @@ export class CdkContextMenuTrigger extends CdkMenuTriggerBase implements OnDestr
   private _getOverlayConfig(coordinates: ContextMenuCoordinates) {
     return new OverlayConfig({
       positionStrategy: this._getOverlayPositionStrategy(coordinates),
-      scrollStrategy: this._overlay.scrollStrategies.reposition(),
+      scrollStrategy: this.menuScrollStrategy(),
       direction: this._directionality || undefined,
     });
   }

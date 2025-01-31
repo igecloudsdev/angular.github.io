@@ -8,7 +8,6 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import {ErrorStateMatcher} from '@angular/material/core';
-import {NgIf} from '@angular/common';
 import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
 
@@ -24,9 +23,8 @@ export class MyErrorStateMatcher implements ErrorStateMatcher {
 @Component({
   selector: 'input-error-state-matcher-example',
   templateUrl: './input-error-state-matcher-example.html',
-  styleUrls: ['./input-error-state-matcher-example.css'],
-  standalone: true,
-  imports: [FormsModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, NgIf],
+  styleUrl: './input-error-state-matcher-example.css',
+  imports: [FormsModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule],
 })
 export class InputErrorStateMatcherExample {
   emailFormControl = new FormControl('', [Validators.required, Validators.email]);

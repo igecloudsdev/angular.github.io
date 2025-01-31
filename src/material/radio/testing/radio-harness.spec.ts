@@ -1,7 +1,7 @@
-import {Component} from '@angular/core';
-import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {HarnessLoader} from '@angular/cdk/testing';
 import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
+import {Component} from '@angular/core';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {MatRadioModule} from '@angular/material/radio';
 import {MatRadioButtonHarness, MatRadioGroupHarness} from './radio-harness';
@@ -10,11 +10,10 @@ describe('radio harness', () => {
   let fixture: ComponentFixture<MultipleRadioButtonsHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatRadioModule, ReactiveFormsModule],
-      declarations: [MultipleRadioButtonsHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatRadioModule, ReactiveFormsModule, MultipleRadioButtonsHarnessTest],
+    });
 
     fixture = TestBed.createComponent(MultipleRadioButtonsHarnessTest);
     fixture.detectChanges();
@@ -46,20 +45,17 @@ describe('radio harness', () => {
       expect(await groups[0].getId()).toBe('my-group-1');
     });
 
-    it(
-      'should throw when finding radio-group with specific name that has mismatched ' +
-        'radio-button names',
-      async () => {
-        fixture.componentInstance.thirdGroupButtonName = 'other-name';
-        fixture.detectChanges();
+    it('should throw when finding radio-group with specific name that has mismatched radio-button names', async () => {
+      fixture.componentInstance.thirdGroupButtonName = 'other-name';
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
 
-        await expectAsync(
-          loader.getAllHarnesses(MatRadioGroupHarness.with({name: 'third-group-name'})),
-        ).toBeRejectedWithError(
-          /locator found a radio-group with name "third-group-name".*have mismatching names/,
-        );
-      },
-    );
+      await expectAsync(
+        loader.getAllHarnesses(MatRadioGroupHarness.with({name: 'third-group-name'})),
+      ).toBeRejectedWithError(
+        /locator found a radio-group with name "third-group-name".*have mismatching names/,
+      );
+    });
 
     it('should get name of radio-group', async () => {
       const groups = await loader.getAllHarnesses(MatRadioGroupHarness);
@@ -69,11 +65,13 @@ describe('radio harness', () => {
       expect(await groups[2].getName()).toBe('third-group-name');
 
       fixture.componentInstance.secondGroupId = 'new-group';
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
 
       expect(await groups[1].getName()).toBe('new-group-name');
 
       fixture.componentInstance.thirdGroupButtonName = 'other-button-name';
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
 
       await expectAsync(groups[2].getName()).toBeRejectedWithError(
@@ -89,6 +87,7 @@ describe('radio harness', () => {
       expect(await groups[2].getId()).toBe('');
 
       fixture.componentInstance.secondGroupId = 'new-group-name';
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
 
       expect(await groups[1].getId()).toBe('new-group-name');
@@ -185,18 +184,16 @@ describe('radio harness', () => {
     });
 
     it('should get label text', async () => {
-      const [firstRadio, secondRadio, thirdRadio] = await loader.getAllHarnesses(
-        MatRadioButtonHarness,
-      );
+      const [firstRadio, secondRadio, thirdRadio] =
+        await loader.getAllHarnesses(MatRadioButtonHarness);
       expect(await firstRadio.getLabelText()).toBe('Option #1');
       expect(await secondRadio.getLabelText()).toBe('Option #2');
       expect(await thirdRadio.getLabelText()).toBe('Option #3');
     });
 
     it('should get value', async () => {
-      const [firstRadio, secondRadio, thirdRadio] = await loader.getAllHarnesses(
-        MatRadioButtonHarness,
-      );
+      const [firstRadio, secondRadio, thirdRadio] =
+        await loader.getAllHarnesses(MatRadioButtonHarness);
       expect(await firstRadio.getValue()).toBe('opt1');
       expect(await secondRadio.getValue()).toBe('opt2');
       expect(await thirdRadio.getValue()).toBe('opt3');
@@ -207,6 +204,21 @@ describe('radio harness', () => {
       expect(await firstRadio.isDisabled()).toBe(false);
 
       fixture.componentInstance.disableAll = true;
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+
+      expect(await firstRadio.isDisabled()).toBe(true);
+    });
+
+    it('should get the disabled state with disabledInteractive is enabled', async () => {
+      fixture.componentInstance.disabledInteractive = true;
+      fixture.changeDetectorRef.markForCheck();
+
+      const [firstRadio] = await loader.getAllHarnesses(MatRadioButtonHarness);
+      expect(await firstRadio.isDisabled()).toBe(false);
+
+      fixture.componentInstance.disableAll = true;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
 
       expect(await firstRadio.isDisabled()).toBe(true);
@@ -238,6 +250,7 @@ describe('radio harness', () => {
 
     it('should not be able to check disabled radio-button', async () => {
       fixture.componentInstance.disableAll = true;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
 
       const radioButton = await loader.getHarness(MatRadioButtonHarness.with({selector: '#opt3'}));
@@ -246,6 +259,7 @@ describe('radio harness', () => {
       expect(await radioButton.isChecked()).toBe(false);
 
       fixture.componentInstance.disableAll = false;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
 
       expect(await radioButton.isChecked()).toBe(false);
@@ -264,23 +278,26 @@ describe('radio harness', () => {
 
 @Component({
   template: `
-    <mat-radio-button *ngFor="let value of values, let i = index"
-                      [name]="value === 'opt3' ? 'group2' : 'group1'"
-                      [disabled]="disableAll"
-                      [checked]="value === 'opt2'"
-                      [id]="value"
-                      [required]="value === 'opt2'"
-                      [value]="value">
-      Option #{{i + 1}}
-    </mat-radio-button>
+    @for (value of values; track value) {
+      <mat-radio-button
+        [name]="value === 'opt3' ? 'group2' : 'group1'"
+        [disabled]="disableAll"
+        [disabledInteractive]="disabledInteractive"
+        [checked]="value === 'opt2'"
+        [id]="value"
+        [required]="value === 'opt2'"
+        [value]="value">
+        Option #{{$index + 1}}
+      </mat-radio-button>
+    }
 
     <mat-radio-group id="my-group-1" name="my-group-1-name">
-      <mat-radio-button *ngFor="let value of values"
-                        [checked]="value === 'opt2'"
-                        [value]="value"
-                        [id]="value + '-group-one'">
-        {{value}}
-      </mat-radio-button>
+      @for (value of values; track value) {
+        <mat-radio-button
+          [checked]="value === 'opt2'"
+          [value]="value"
+          [id]="value + '-group-one'">{{value}}</mat-radio-button>
+      }
     </mat-radio-group>
 
 
@@ -295,10 +312,12 @@ describe('radio harness', () => {
       <mat-radio-button [value]="false" [name]="thirdGroupButtonName"></mat-radio-button>
     </mat-radio-group>
   `,
+  imports: [MatRadioModule, ReactiveFormsModule],
 })
 class MultipleRadioButtonsHarnessTest {
   values = ['opt1', 'opt2', 'opt3'];
   disableAll = false;
+  disabledInteractive = false;
   secondGroupId = 'my-group-2';
   thirdGroupName: string = 'third-group-name';
   thirdGroupButtonName: string | undefined = undefined;

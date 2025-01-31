@@ -40,9 +40,8 @@ const ELEMENT_DATA: PeriodicElement[] = [
  */
 @Component({
   selector: 'cdk-popover-edit-cdk-table-example',
-  styleUrls: ['cdk-popover-edit-cdk-table-example.css'],
+  styleUrl: 'cdk-popover-edit-cdk-table-example.css',
   templateUrl: 'cdk-popover-edit-cdk-table-example.html',
-  standalone: true,
   imports: [CdkTableModule, CdkPopoverEditModule, FormsModule],
 })
 export class CdkPopoverEditCdkTableExample {

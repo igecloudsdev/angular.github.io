@@ -9,8 +9,7 @@ import {FormsModule} from '@angular/forms';
 @Component({
   selector: 'input-form-example',
   templateUrl: 'input-form-example.html',
-  styleUrls: ['input-form-example.css'],
-  standalone: true,
+  styleUrl: 'input-form-example.css',
   imports: [FormsModule, MatFormFieldModule, MatInputModule],
 })
 export class InputFormExample {}

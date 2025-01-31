@@ -9,11 +9,10 @@ describe('MatOptgroupHarness', () => {
   let fixture: ComponentFixture<OptgroupHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatOptionModule],
-      declarations: [OptgroupHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatOptionModule, OptgroupHarnessTest],
+    });
 
     fixture = TestBed.createComponent(OptgroupHarnessTest);
     fixture.detectChanges();
@@ -73,5 +72,6 @@ describe('MatOptgroupHarness', () => {
       <mat-option>Disabled option 1</mat-option>
     </mat-optgroup>
   `,
+  imports: [MatOptionModule],
 })
 class OptgroupHarnessTest {}

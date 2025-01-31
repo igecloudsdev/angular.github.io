@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {FormBuilder, Validators, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -11,8 +11,7 @@ import {MatButtonModule} from '@angular/material/button';
 @Component({
   selector: 'stepper-vertical-example',
   templateUrl: 'stepper-vertical-example.html',
-  styleUrls: ['stepper-vertical-example.css'],
-  standalone: true,
+  styleUrl: 'stepper-vertical-example.css',
   imports: [
     MatButtonModule,
     MatStepperModule,
@@ -23,6 +22,8 @@ import {MatButtonModule} from '@angular/material/button';
   ],
 })
 export class StepperVerticalExample {
+  private _formBuilder = inject(FormBuilder);
+
   firstFormGroup = this._formBuilder.group({
     firstCtrl: ['', Validators.required],
   });
@@ -30,6 +31,4 @@ export class StepperVerticalExample {
     secondCtrl: ['', Validators.required],
   });
   isLinear = false;
-
-  constructor(private _formBuilder: FormBuilder) {}
 }

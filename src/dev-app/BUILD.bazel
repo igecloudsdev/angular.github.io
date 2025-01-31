@@ -71,6 +71,8 @@ ng_module(
         "//src/dev-app/table",
         "//src/dev-app/table-scroll-container",
         "//src/dev-app/tabs",
+        "//src/dev-app/theme",
+        "//src/dev-app/timepicker",
         "//src/dev-app/toolbar",
         "//src/dev-app/tooltip",
         "//src/dev-app/tree",
@@ -111,7 +113,6 @@ sass_binary(
     deps = [
         "//src/material:sass_lib",
         "//src/material-experimental:sass_lib",
-        "//src/material/core:theming_scss_lib",
     ],
 )
 
@@ -121,7 +122,6 @@ sass_binary(
     deps = [
         "//src/material:sass_lib",
         "//src/material-experimental:sass_lib",
-        "//src/material/core:theming_scss_lib",
     ],
 )
 
@@ -147,7 +147,7 @@ filegroup(
         "//src/dev-app/icon:icon_demo_assets",
         "@npm//:node_modules/moment/min/moment-with-locales.min.js",
         "@npm//:node_modules/rxjs/bundles/rxjs.umd.min.js",
-        "@npm//:node_modules/zone.js/dist/zone.js",
+        "@npm//:node_modules/zone.js/bundles/zone.umd.js",
     ],
 )
 

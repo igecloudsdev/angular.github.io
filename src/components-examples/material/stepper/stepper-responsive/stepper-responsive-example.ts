@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {FormBuilder, Validators, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {BreakpointObserver} from '@angular/cdk/layout';
 import {StepperOrientation, MatStepperModule} from '@angular/material/stepper';
@@ -7,7 +7,7 @@ import {map} from 'rxjs/operators';
 import {MatButtonModule} from '@angular/material/button';
 import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
-import {NgSwitch, NgSwitchCase, AsyncPipe} from '@angular/common';
+import {AsyncPipe} from '@angular/common';
 
 /**
  * @title Stepper responsive
@@ -15,11 +15,8 @@ import {NgSwitch, NgSwitchCase, AsyncPipe} from '@angular/common';
 @Component({
   selector: 'stepper-responsive-example',
   templateUrl: 'stepper-responsive-example.html',
-  styleUrls: ['stepper-responsive-example.css'],
-  standalone: true,
+  styleUrl: 'stepper-responsive-example.css',
   imports: [
-    NgSwitch,
-    NgSwitchCase,
     MatStepperModule,
     FormsModule,
     ReactiveFormsModule,
@@ -30,6 +27,8 @@ import {NgSwitch, NgSwitchCase, AsyncPipe} from '@angular/common';
   ],
 })
 export class StepperResponsiveExample {
+  private _formBuilder = inject(FormBuilder);
+
   firstFormGroup = this._formBuilder.group({
     firstCtrl: ['', Validators.required],
   });
@@ -41,7 +40,9 @@ export class StepperResponsiveExample {
   });
   stepperOrientation: Observable<StepperOrientation>;
 
-  constructor(private _formBuilder: FormBuilder, breakpointObserver: BreakpointObserver) {
+  constructor() {
+    const breakpointObserver = inject(BreakpointObserver);
+
     this.stepperOrientation = breakpointObserver
       .observe('(min-width: 800px)')
       .pipe(map(({matches}) => (matches ? 'horizontal' : 'vertical')));

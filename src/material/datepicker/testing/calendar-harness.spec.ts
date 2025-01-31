@@ -1,15 +1,15 @@
-import {Component} from '@angular/core';
-import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {HarnessLoader, parallel} from '@angular/cdk/testing';
 import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
-import {
-  MatDatepickerModule,
-  DateRange,
-  MAT_DATE_RANGE_SELECTION_STRATEGY,
-  DefaultMatCalendarRangeStrategy,
-} from '@angular/material/datepicker';
+import {Component} from '@angular/core';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {MatNativeDateModule} from '@angular/material/core';
-import {MatCalendarHarness, CalendarView} from './calendar-harness';
+import {
+  DateRange,
+  DefaultMatCalendarRangeStrategy,
+  MAT_DATE_RANGE_SELECTION_STRATEGY,
+  MatDatepickerModule,
+} from '@angular/material/datepicker';
+import {CalendarView, MatCalendarHarness} from './calendar-harness';
 
 /** Date at which the calendars are set. */
 const calendarDate = new Date(2020, 7, 1);
@@ -18,10 +18,9 @@ describe('MatCalendarHarness', () => {
   let fixture: ComponentFixture<CalendarHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatNativeDateModule, MatDatepickerModule],
-      declarations: [CalendarHarnessTest],
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatNativeDateModule, MatDatepickerModule, CalendarHarnessTest],
       providers: [
         {
           // Usually it's the date range picker that provides the default range selection strategy,
@@ -30,7 +29,7 @@ describe('MatCalendarHarness', () => {
           useClass: DefaultMatCalendarRangeStrategy,
         },
       ],
-    }).compileComponents();
+    });
 
     fixture = TestBed.createComponent(CalendarHarnessTest);
     fixture.detectChanges();
@@ -112,6 +111,7 @@ describe('MatCalendarHarness', () => {
       calendarDate.getMonth(),
       20,
     );
+    fixture.changeDetectorRef.markForCheck();
 
     const calendar = await loader.getHarness(MatCalendarHarness.with({selector: '#single'}));
     const cells = await calendar.getCells();
@@ -194,6 +194,7 @@ describe('MatCalendarHarness', () => {
       calendarDate.getMonth(),
       8,
     );
+    fixture.changeDetectorRef.markForCheck();
 
     expect(await allCells[4].isComparisonRangeStart()).toBe(true);
     expect(await allCells[4].isInComparisonRange()).toBe(true);
@@ -273,6 +274,7 @@ describe('MatCalendarHarness', () => {
       calendarDate.getMonth(),
       3,
     );
+    fixture.changeDetectorRef.markForCheck();
 
     const calendar = await loader.getHarness(MatCalendarHarness.with({selector: '#single'}));
     const cells = await calendar.getCells({disabled: true});
@@ -292,6 +294,7 @@ describe('MatCalendarHarness', () => {
       calendarDate.getMonth(),
       8,
     );
+    fixture.changeDetectorRef.markForCheck();
 
     const cells = await calendar.getCells({inComparisonRange: true});
     expect(await parallel(() => cells.map(cell => cell.getText()))).toEqual(['5', '6', '7', '8']);
@@ -326,6 +329,7 @@ describe('MatCalendarHarness', () => {
       [comparisonEnd]="comparisonEnd"
       (selectedChange)="rangeChanged($event)"></mat-calendar>
   `,
+  imports: [MatNativeDateModule, MatDatepickerModule],
 })
 class CalendarHarnessTest {
   // Start the datepickers off at a specific date so tests

@@ -3,10 +3,11 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {
+  ANIMATION_MODULE_TYPE,
   AfterContentInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -14,7 +15,6 @@ import {
   ContentChildren,
   ElementRef,
   EventEmitter,
-  Inject,
   InjectionToken,
   Input,
   OnDestroy,
@@ -24,8 +24,8 @@ import {
   ViewChild,
   ViewEncapsulation,
   booleanAttribute,
+  inject,
 } from '@angular/core';
-import {AnimationEvent} from '@angular/animations';
 import {
   MAT_OPTGROUP,
   MAT_OPTION_PARENT_COMPONENT,
@@ -33,17 +33,9 @@ import {
   MatOption,
   ThemePalette,
 } from '@angular/material/core';
-import {ActiveDescendantKeyManager} from '@angular/cdk/a11y';
-import {coerceStringArray} from '@angular/cdk/coercion';
+import {_IdGenerator, ActiveDescendantKeyManager} from '@angular/cdk/a11y';
 import {Platform} from '@angular/cdk/platform';
-import {panelAnimation} from './animations';
 import {Subscription} from 'rxjs';
-
-/**
- * Autocomplete IDs need to be unique across components, so this counter exists outside of
- * the component definition.
- */
-let _uniqueAutocompleteIdCounter = 0;
 
 /** Event object that is emitted when an autocomplete option is selected. */
 export class MatAutocompleteSelectedEvent {
@@ -81,7 +73,7 @@ export interface MatAutocompleteDefaultOptions {
   /** Class or list of classes to be applied to the autocomplete's overlay panel. */
   overlayPanelClass?: string | string[];
 
-  /** Wheter icon indicators should be hidden for single-selection. */
+  /** Whether icon indicators should be hidden for single-selection. */
   hideSingleSelectionIndicator?: boolean;
 }
 
@@ -108,28 +100,22 @@ export function MAT_AUTOCOMPLETE_DEFAULT_OPTIONS_FACTORY(): MatAutocompleteDefau
 @Component({
   selector: 'mat-autocomplete',
   templateUrl: 'autocomplete.html',
-  styleUrls: ['autocomplete.css'],
+  styleUrl: 'autocomplete.css',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   exportAs: 'matAutocomplete',
   host: {
     'class': 'mat-mdc-autocomplete',
-    'ngSkipHydration': '',
   },
   providers: [{provide: MAT_OPTION_PARENT_COMPONENT, useExisting: MatAutocomplete}],
-  animations: [panelAnimation],
 })
 export class MatAutocomplete implements AfterContentInit, OnDestroy {
+  private _changeDetectorRef = inject(ChangeDetectorRef);
+  private _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  protected _defaults = inject<MatAutocompleteDefaultOptions>(MAT_AUTOCOMPLETE_DEFAULT_OPTIONS);
+  protected _animationsDisabled =
+    inject(ANIMATION_MODULE_TYPE, {optional: true}) === 'NoopAnimations';
   private _activeOptionChanges = Subscription.EMPTY;
-
-  /** Class to apply to the panel when it's visible. */
-  private _visibleClass = 'mat-mdc-autocomplete-visible';
-
-  /** Class to apply to the panel when it's hidden. */
-  private _hiddenClass = 'mat-mdc-autocomplete-hidden';
-
-  /** Emits when the panel animation is done. Null if the panel doesn't animate. */
-  _animationDone = new EventEmitter<AnimationEvent>();
 
   /** Manages active item in option list based on key events. */
   _keyManager: ActiveDescendantKeyManager<MatOption>;
@@ -143,13 +129,16 @@ export class MatAutocomplete implements AfterContentInit, OnDestroy {
   }
   _isOpen: boolean = false;
 
+  /** Latest trigger that opened the autocomplete. */
+  _latestOpeningTrigger: unknown;
+
   /** @docs-private Sets the theme color of the panel. */
   _setColor(value: ThemePalette) {
     this._color = value;
-    this._setThemeClasses(this._classList);
+    this._changeDetectorRef.markForCheck();
   }
   /** @docs-private theme color of the panel */
-  private _color: ThemePalette;
+  protected _color: ThemePalette;
 
   // The @ViewChild query for TemplateRef here needs to be static because some code paths
   // lead to the overlay being created before change detection has finished for this component.
@@ -222,23 +211,10 @@ export class MatAutocomplete implements AfterContentInit, OnDestroy {
    */
   @Input('class')
   set classList(value: string | string[]) {
-    if (value && value.length) {
-      this._classList = coerceStringArray(value).reduce(
-        (classList, className) => {
-          classList[className] = true;
-          return classList;
-        },
-        {} as {[key: string]: boolean},
-      );
-    } else {
-      this._classList = {};
-    }
-
-    this._setVisibilityClasses(this._classList);
-    this._setThemeClasses(this._classList);
+    this._classList = value;
     this._elementRef.nativeElement.className = '';
   }
-  _classList: {[key: string]: boolean} = {};
+  _classList: string | string[];
 
   /** Whether checkmark indicator for single-selection options is hidden. */
   @Input({transform: booleanAttribute})
@@ -261,7 +237,7 @@ export class MatAutocomplete implements AfterContentInit, OnDestroy {
   }
 
   /** Unique ID to be used by autocomplete trigger's "aria-owns" property. */
-  id: string = `mat-autocomplete-${_uniqueAutocompleteIdCounter++}`;
+  id: string = inject(_IdGenerator).getId('mat-autocomplete-');
 
   /**
    * Tells any descendant `mat-optgroup` to use the inert a11y pattern.
@@ -269,20 +245,19 @@ export class MatAutocomplete implements AfterContentInit, OnDestroy {
    */
   readonly inertGroups: boolean;
 
-  constructor(
-    private _changeDetectorRef: ChangeDetectorRef,
-    private _elementRef: ElementRef<HTMLElement>,
-    @Inject(MAT_AUTOCOMPLETE_DEFAULT_OPTIONS) protected _defaults: MatAutocompleteDefaultOptions,
-    platform?: Platform,
-  ) {
+  constructor(...args: unknown[]);
+
+  constructor() {
+    const platform = inject(Platform);
+
     // TODO(crisbeto): the problem that the `inertGroups` option resolves is only present on
     // Safari using VoiceOver. We should occasionally check back to see whether the bug
     // wasn't resolved in VoiceOver, and if it has, we can remove this and the `inertGroups`
     // option altogether.
     this.inertGroups = platform?.SAFARI || false;
-    this.autoActiveFirstOption = !!_defaults.autoActiveFirstOption;
-    this.autoSelectActiveOption = !!_defaults.autoSelectActiveOption;
-    this.requireSelection = !!_defaults.requireSelection;
+    this.autoActiveFirstOption = !!this._defaults.autoActiveFirstOption;
+    this.autoSelectActiveOption = !!this._defaults.autoSelectActiveOption;
+    this.requireSelection = !!this._defaults.requireSelection;
     this._hideSingleSelectionIndicator = this._defaults.hideSingleSelectionIndicator ?? false;
   }
 
@@ -303,7 +278,6 @@ export class MatAutocomplete implements AfterContentInit, OnDestroy {
   ngOnDestroy() {
     this._keyManager?.destroy();
     this._activeOptionChanges.unsubscribe();
-    this._animationDone.complete();
   }
 
   /**
@@ -324,7 +298,6 @@ export class MatAutocomplete implements AfterContentInit, OnDestroy {
   /** Panel should hide itself when the option list is empty. */
   _setVisibility() {
     this.showPanel = !!this.options.length;
-    this._setVisibilityClasses(this._classList);
     this._changeDetectorRef.markForCheck();
   }
 
@@ -342,19 +315,6 @@ export class MatAutocomplete implements AfterContentInit, OnDestroy {
 
     const labelExpression = labelId ? labelId + ' ' : '';
     return this.ariaLabelledby ? labelExpression + this.ariaLabelledby : labelId;
-  }
-
-  /** Sets the autocomplete visibility classes on a classlist based on the panel is visible. */
-  private _setVisibilityClasses(classList: {[key: string]: boolean}) {
-    classList[this._visibleClass] = this.showPanel;
-    classList[this._hiddenClass] = !this.showPanel;
-  }
-
-  /** Sets the theming classes on a classlist based on the theme of the panel. */
-  private _setThemeClasses(classList: {[key: string]: boolean}) {
-    classList['mat-primary'] = this._color === 'primary';
-    classList['mat-warn'] = this._color === 'warn';
-    classList['mat-accent'] = this._color === 'accent';
   }
 
   // `skipPredicate` determines if key manager should avoid putting a given option in the tab

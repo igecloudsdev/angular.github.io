@@ -1,5 +1,6 @@
 load(
     "//tools:defaults.bzl",
+    "extract_tokens",
     "markdown_to_html",
     "ng_module",
     "ng_test_library",
@@ -23,13 +24,11 @@ ng_module(
     deps = [
         "//src/cdk/a11y",
         "//src/cdk/accordion",
-        "//src/cdk/coercion",
         "//src/cdk/collections",
         "//src/cdk/keycodes",
         "//src/cdk/portal",
         "//src/material/core",
         "@npm//@angular/animations",
-        "@npm//@angular/common",
         "@npm//@angular/core",
         "@npm//@angular/platform-browser",
         "@npm//rxjs",
@@ -82,6 +81,11 @@ ng_web_test_suite(
 markdown_to_html(
     name = "overview",
     srcs = [":expansion.md"],
+)
+
+extract_tokens(
+    name = "tokens",
+    srcs = [":expansion_scss_lib"],
 )
 
 filegroup(

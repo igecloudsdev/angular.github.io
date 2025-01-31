@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 import {
   animate,
@@ -17,12 +17,11 @@ import {
   animateChild,
 } from '@angular/animations';
 
-export const DEFAULT_HORIZONTAL_ANIMATION_DURATION = '500ms';
-export const DEFAULT_VERTICAL_ANIMATION_DURATION = '225ms';
-
 /**
  * Animations used by the Material steppers.
  * @docs-private
+ * @deprecated No longer used, will be removed.
+ * @breaking-change 21.0.0
  */
 export const matStepperAnimations: {
   readonly horizontalStepTransition: AnimationTriggerMetadata;
@@ -43,7 +42,7 @@ export const matStepperAnimations: {
         query('@*', animateChild(), {optional: true}),
       ]),
       {
-        params: {'animationDuration': DEFAULT_HORIZONTAL_ANIMATION_DURATION},
+        params: {'animationDuration': '500ms'},
       },
     ),
   ]),
@@ -63,7 +62,7 @@ export const matStepperAnimations: {
         query('@*', animateChild(), {optional: true}),
       ]),
       {
-        params: {'animationDuration': DEFAULT_VERTICAL_ANIMATION_DURATION},
+        params: {'animationDuration': '225ms'},
       },
     ),
   ]),

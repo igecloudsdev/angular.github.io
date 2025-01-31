@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {Routes} from '@angular/router';
@@ -220,6 +220,14 @@ export const DEV_APP_ROUTES: Routes = [
   {
     path: 'tabs',
     loadComponent: () => import('./tabs/tabs-demo').then(m => m.TabsDemo),
+  },
+  {
+    path: 'theme',
+    loadComponent: () => import('./theme/theme-demo').then(m => m.ThemeDemo),
+  },
+  {
+    path: 'timepicker',
+    loadComponent: () => import('./timepicker/timepicker-demo').then(m => m.TimepickerDemo),
   },
   {
     path: 'toolbar',

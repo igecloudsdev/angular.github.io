@@ -1,16 +1,17 @@
-import {Component} from '@angular/core';
-import {MatDatepickerModule} from '@angular/material/datepicker';
+import {ChangeDetectionStrategy, Component, model} from '@angular/core';
 import {MatCardModule} from '@angular/material/card';
-import {MatNativeDateModule} from '@angular/material/core';
+import {provideNativeDateAdapter} from '@angular/material/core';
+import {MatDatepickerModule} from '@angular/material/datepicker';
 
 /** @title Datepicker inline calendar example */
 @Component({
   selector: 'datepicker-inline-calendar-example',
   templateUrl: 'datepicker-inline-calendar-example.html',
-  styleUrls: ['datepicker-inline-calendar-example.css'],
-  standalone: true,
-  imports: [MatCardModule, MatDatepickerModule, MatNativeDateModule],
+  styleUrl: 'datepicker-inline-calendar-example.css',
+  providers: [provideNativeDateAdapter()],
+  imports: [MatCardModule, MatDatepickerModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DatepickerInlineCalendarExample {
-  selected: Date | null;
+  selected = model<Date | null>(null);
 }

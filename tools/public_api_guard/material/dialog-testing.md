@@ -44,7 +44,7 @@ export class MatDialogHarness extends ContentContainerComponentHarness<MatDialog
 }
 
 // @public
-export const enum MatDialogSection {
+export enum MatDialogSection {
     // (undocumented)
     ACTIONS = ".mat-mdc-dialog-actions",
     // (undocumented)
@@ -55,7 +55,7 @@ export const enum MatDialogSection {
 
 // @public
 export class MatTestDialogOpener<T = unknown, R = unknown> implements OnDestroy {
-    constructor(dialog: MatDialog);
+    constructor(...args: unknown[]);
     closedResult: R | undefined;
     protected static component: ComponentType<unknown> | undefined;
     protected static config: MatDialogConfig | undefined;

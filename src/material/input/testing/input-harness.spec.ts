@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, signal} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {HarnessLoader} from '@angular/cdk/testing';
 import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
@@ -12,11 +12,10 @@ describe('MatInputHarness', () => {
   let fixture: ComponentFixture<InputHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, MatInputModule, FormsModule],
-      declarations: [InputHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [NoopAnimationsModule, MatInputModule, FormsModule, InputHarnessTest],
+    });
 
     fixture = TestBed.createComponent(InputHarnessTest);
     fixture.detectChanges();
@@ -67,11 +66,11 @@ describe('MatInputHarness', () => {
   it('should be able to get id of input', async () => {
     const inputs = await loader.getAllHarnesses(MatInputHarness);
     expect(inputs.length).toBe(7);
-    expect(await inputs[0].getId()).toMatch(/mat-input-\d+/);
-    expect(await inputs[1].getId()).toMatch(/mat-input-\d+/);
+    expect(await inputs[0].getId()).toMatch(/mat-input-\w+\d+/);
+    expect(await inputs[1].getId()).toMatch(/mat-input-\w+\d+/);
     expect(await inputs[2].getId()).toBe('myTextarea');
     expect(await inputs[3].getId()).toBe('nativeControl');
-    expect(await inputs[4].getId()).toMatch(/mat-input-\d+/);
+    expect(await inputs[4].getId()).toMatch(/mat-input-\w+\d+/);
     expect(await inputs[5].getId()).toBe('has-ng-model');
   });
 
@@ -127,7 +126,7 @@ describe('MatInputHarness', () => {
     expect(await inputs[4].isDisabled()).toBe(false);
     expect(await inputs[5].isDisabled()).toBe(false);
 
-    fixture.componentInstance.disabled = true;
+    fixture.componentInstance.disabled.set(true);
 
     expect(await inputs[1].isDisabled()).toBe(true);
   });
@@ -143,7 +142,7 @@ describe('MatInputHarness', () => {
     expect(await inputs[4].isReadonly()).toBe(false);
     expect(await inputs[5].isReadonly()).toBe(false);
 
-    fixture.componentInstance.readonly = true;
+    fixture.componentInstance.readonly.set(true);
 
     expect(await inputs[1].isReadonly()).toBe(true);
   });
@@ -159,7 +158,7 @@ describe('MatInputHarness', () => {
     expect(await inputs[4].isRequired()).toBe(false);
     expect(await inputs[5].isRequired()).toBe(false);
 
-    fixture.componentInstance.required = true;
+    fixture.componentInstance.required.set(true);
 
     expect(await inputs[1].isRequired()).toBe(true);
   });
@@ -185,7 +184,7 @@ describe('MatInputHarness', () => {
     expect(await inputs[4].getType()).toBe('textarea');
     expect(await inputs[5].getType()).toBe('text');
 
-    fixture.componentInstance.inputType = 'text';
+    fixture.componentInstance.inputType.set('text');
 
     expect(await inputs[1].getType()).toBe('text');
   });
@@ -221,6 +220,17 @@ describe('MatInputHarness', () => {
     await input.setValue('#00ff00');
     expect((await input.getValue()).toLowerCase()).toBe('#00ff00');
   });
+
+  it('should be able to get disabled state when disabledInteractive is enabled', async () => {
+    const input = (await loader.getAllHarnesses(MatInputHarness))[1];
+
+    fixture.componentInstance.disabled.set(false);
+    fixture.componentInstance.disabledInteractive.set(true);
+    expect(await input.isDisabled()).toBe(false);
+
+    fixture.componentInstance.disabled.set(true);
+    expect(await input.isDisabled()).toBe(true);
+  });
 });
 
 @Component({
@@ -230,10 +240,13 @@ describe('MatInputHarness', () => {
     </mat-form-field>
 
     <mat-form-field>
-      <input matInput [type]="inputType"
-                      [readonly]="readonly"
-                      [disabled]="disabled"
-                      [required]="required">
+      <input
+        matInput
+        [type]="inputType()"
+        [readonly]="readonly()"
+        [disabled]="disabled()"
+        [disabledInteractive]="disabledInteractive()"
+        [required]="required()">
     </mat-form-field>
 
     <mat-form-field>
@@ -266,12 +279,14 @@ describe('MatInputHarness', () => {
       <input matNativeControl placeholder="Color control" id="colorControl" type="color">
     </mat-form-field>
   `,
+  imports: [MatInputModule, FormsModule],
 })
 class InputHarnessTest {
-  inputType = 'number';
-  readonly = false;
-  disabled = false;
-  required = false;
+  inputType = signal('number');
+  readonly = signal(false);
+  disabled = signal(false);
+  disabledInteractive = signal(false);
+  required = signal(false);
   ngModelValue = '';
   ngModelName = 'has-ng-model';
 }

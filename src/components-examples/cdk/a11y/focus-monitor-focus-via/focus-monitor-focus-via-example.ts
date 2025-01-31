@@ -1,4 +1,3 @@
-import {FocusMonitor, FocusOrigin} from '@angular/cdk/a11y';
 import {
   AfterViewInit,
   ChangeDetectorRef,
@@ -7,7 +6,9 @@ import {
   NgZone,
   OnDestroy,
   ViewChild,
+  inject,
 } from '@angular/core';
+import {FocusMonitor, FocusOrigin} from '@angular/cdk/a11y';
 import {MatSelectModule} from '@angular/material/select';
 import {MatFormFieldModule} from '@angular/material/form-field';
 
@@ -15,20 +16,17 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 @Component({
   selector: 'focus-monitor-focus-via-example',
   templateUrl: 'focus-monitor-focus-via-example.html',
-  styleUrls: ['focus-monitor-focus-via-example.css'],
-  standalone: true,
+  styleUrl: 'focus-monitor-focus-via-example.css',
   imports: [MatFormFieldModule, MatSelectModule],
 })
 export class FocusMonitorFocusViaExample implements OnDestroy, AfterViewInit {
+  focusMonitor = inject(FocusMonitor);
+  private _cdr = inject(ChangeDetectorRef);
+  private _ngZone = inject(NgZone);
+
   @ViewChild('monitored') monitoredEl: ElementRef<HTMLElement>;
 
   origin = this.formatOrigin(null);
-
-  constructor(
-    public focusMonitor: FocusMonitor,
-    private _cdr: ChangeDetectorRef,
-    private _ngZone: NgZone,
-  ) {}
 
   ngAfterViewInit() {
     this.focusMonitor.monitor(this.monitoredEl).subscribe(origin =>

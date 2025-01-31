@@ -10,8 +10,8 @@ in increments of `1`. These values can be changed by setting the `min`, `max`, a
 respectively. The initial value is set to the minimum value unless otherwise specified.
 
 ```html
-<mat-slider min="1" max="5" step="0.5" value="1.5">
-  <input matSliderThumb>
+<mat-slider min="1" max="5" step="0.5">
+  <input matSliderThumb value="1.5">
 </mat-slider>
 ```
 
@@ -77,3 +77,8 @@ The slider has the following keyboard bindings:
 
 `MatSlider` uses an internal `<input type="range">` to provide an accessible experience. The input
 receives focus and it can be labelled using `aria-label` or `aria-labelledby`.
+
+Make sure the colors of the active and inactive track of the `MatSlider` meet 
+at least a 3:1 contrast ratio with the background. This can be achieved through 
+changing the active or inactive track colors or showing tick marks on the
+track that have at least a 3:1 color contrast ratio with the background.

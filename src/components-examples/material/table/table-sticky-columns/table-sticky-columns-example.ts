@@ -7,9 +7,8 @@ import {MatTableModule} from '@angular/material/table';
  */
 @Component({
   selector: 'table-sticky-columns-example',
-  styleUrls: ['table-sticky-columns-example.css'],
+  styleUrl: 'table-sticky-columns-example.css',
   templateUrl: 'table-sticky-columns-example.html',
-  standalone: true,
   imports: [MatTableModule, MatIconModule],
 })
 export class TableStickyColumnsExample {

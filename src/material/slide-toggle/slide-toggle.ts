@@ -3,12 +3,11 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {
   AfterContentInit,
-  Attribute,
   booleanAttribute,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -16,24 +15,38 @@ import {
   ElementRef,
   EventEmitter,
   forwardRef,
-  Inject,
   Input,
   numberAttribute,
+  OnChanges,
   OnDestroy,
-  Optional,
   Output,
+  SimpleChanges,
   ViewChild,
   ViewEncapsulation,
+  ANIMATION_MODULE_TYPE,
+  inject,
+  HostAttributeToken,
 } from '@angular/core';
-import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
-import {ANIMATION_MODULE_TYPE} from '@angular/platform-browser/animations';
-import {FocusMonitor} from '@angular/cdk/a11y';
+import {
+  AbstractControl,
+  ControlValueAccessor,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  ValidationErrors,
+  Validator,
+} from '@angular/forms';
+import {_IdGenerator, FocusMonitor} from '@angular/cdk/a11y';
 import {
   MAT_SLIDE_TOGGLE_DEFAULT_OPTIONS,
   MatSlideToggleDefaultOptions,
 } from './slide-toggle-config';
+import {_MatInternalFormField, _StructuralStylesLoader, MatRipple} from '@angular/material/core';
+import {_CdkPrivateStyleLoader} from '@angular/cdk/private';
 
-/** @docs-private */
+/**
+ * @deprecated Will stop being exported.
+ * @breaking-change 19.0.0
+ */
 export const MAT_SLIDE_TOGGLE_VALUE_ACCESSOR = {
   provide: NG_VALUE_ACCESSOR,
   useExisting: forwardRef(() => MatSlideToggle),
@@ -50,14 +63,10 @@ export class MatSlideToggleChange {
   ) {}
 }
 
-// Increasing integer for generating unique ids for slide-toggle components.
-let nextUniqueId = 0;
-
 @Component({
   selector: 'mat-slide-toggle',
   templateUrl: 'slide-toggle.html',
-  styleUrls: ['slide-toggle.css'],
-  inputs: ['disabled', 'disableRipple', 'color', 'tabIndex'],
+  styleUrl: 'slide-toggle.css',
   host: {
     'class': 'mat-mdc-slide-toggle',
     '[id]': 'id',
@@ -74,11 +83,27 @@ let nextUniqueId = 0;
   exportAs: 'matSlideToggle',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [MAT_SLIDE_TOGGLE_VALUE_ACCESSOR],
+  providers: [
+    MAT_SLIDE_TOGGLE_VALUE_ACCESSOR,
+    {
+      provide: NG_VALIDATORS,
+      useExisting: MatSlideToggle,
+      multi: true,
+    },
+  ],
+  imports: [MatRipple, _MatInternalFormField],
 })
-export class MatSlideToggle implements OnDestroy, AfterContentInit, ControlValueAccessor {
+export class MatSlideToggle
+  implements OnDestroy, AfterContentInit, OnChanges, ControlValueAccessor, Validator
+{
+  private _elementRef = inject(ElementRef);
+  protected _focusMonitor = inject(FocusMonitor);
+  protected _changeDetectorRef = inject(ChangeDetectorRef);
+  defaults = inject<MatSlideToggleDefaultOptions>(MAT_SLIDE_TOGGLE_DEFAULT_OPTIONS);
+
   private _onChange = (_: any) => {};
   private _onTouched = () => {};
+  private _validatorOnChange = () => {};
 
   private _uniqueId: string;
   private _checked: boolean = false;
@@ -131,7 +156,13 @@ export class MatSlideToggle implements OnDestroy, AfterContentInit, ControlValue
 
   // TODO(crisbeto): this should be a ThemePalette, but some internal apps were abusing
   // the lack of type checking previously and assigning random strings.
-  /** Palette color of slide toggle. */
+  /**
+   * Theme color of the slide toggle. This API is supported in M2 themes only,
+   * it has no effect in M3 themes. For color customization in M3, see https://material.angular.io/components/slide-toggle/styling.
+   *
+   * For information on applying color variants in M3, see
+   * https://material.angular.io/guide/material-2-theming#optional-add-backwards-compatibility-styles-for-color-variants
+   */
   @Input() color: string | undefined;
 
   /** Whether the slide toggle is disabled. */
@@ -157,6 +188,9 @@ export class MatSlideToggle implements OnDestroy, AfterContentInit, ControlValue
   /** Whether to hide the icon inside of the slide toggle. */
   @Input({transform: booleanAttribute}) hideIcon: boolean;
 
+  /** Whether the slide toggle should remain interactive when it is disabled. */
+  @Input({transform: booleanAttribute}) disabledInteractive: boolean;
+
   /** An event will be dispatched each time the slide-toggle changes its value. */
   @Output() readonly change = new EventEmitter<MatSlideToggleChange>();
 
@@ -172,19 +206,20 @@ export class MatSlideToggle implements OnDestroy, AfterContentInit, ControlValue
     return `${this.id || this._uniqueId}-input`;
   }
 
-  constructor(
-    private _elementRef: ElementRef,
-    protected _focusMonitor: FocusMonitor,
-    protected _changeDetectorRef: ChangeDetectorRef,
-    @Attribute('tabindex') tabIndex: string,
-    @Inject(MAT_SLIDE_TOGGLE_DEFAULT_OPTIONS) public defaults: MatSlideToggleDefaultOptions,
-    @Optional() @Inject(ANIMATION_MODULE_TYPE) animationMode?: string,
-  ) {
-    this.tabIndex = parseInt(tabIndex) || 0;
+  constructor(...args: unknown[]);
+
+  constructor() {
+    inject(_CdkPrivateStyleLoader).load(_StructuralStylesLoader);
+    const tabIndex = inject(new HostAttributeToken('tabindex'), {optional: true});
+    const defaults = this.defaults;
+    const animationMode = inject(ANIMATION_MODULE_TYPE, {optional: true});
+
+    this.tabIndex = tabIndex == null ? 0 : parseInt(tabIndex) || 0;
     this.color = defaults.color || 'accent';
     this._noopAnimations = animationMode === 'NoopAnimations';
-    this.id = this._uniqueId = `mat-mdc-slide-toggle-${++nextUniqueId}`;
+    this.id = this._uniqueId = inject(_IdGenerator).getId('mat-mdc-slide-toggle-');
     this.hideIcon = defaults.hideIcon ?? false;
+    this.disabledInteractive = defaults.disabledInteractive ?? false;
     this._labelId = this._uniqueId + '-label';
   }
 
@@ -208,6 +243,12 @@ export class MatSlideToggle implements OnDestroy, AfterContentInit, ControlValue
     });
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['required']) {
+      this._validatorOnChange();
+    }
+  }
+
   ngOnDestroy() {
     this._focusMonitor.stopMonitoring(this._elementRef);
   }
@@ -225,6 +266,16 @@ export class MatSlideToggle implements OnDestroy, AfterContentInit, ControlValue
   /** Implemented as part of ControlValueAccessor. */
   registerOnTouched(fn: any): void {
     this._onTouched = fn;
+  }
+
+  /** Implemented as a part of Validator. */
+  validate(control: AbstractControl<boolean>): ValidationErrors | null {
+    return this.required && control.value !== true ? {'required': true} : null;
+  }
+
+  /** Implemented as a part of Validator. */
+  registerOnValidatorChange(fn: () => void): void {
+    this._validatorOnChange = fn;
   }
 
   /** Implemented as a part of ControlValueAccessor. */
@@ -249,12 +300,14 @@ export class MatSlideToggle implements OnDestroy, AfterContentInit, ControlValue
 
   /** Method being called whenever the underlying button is clicked. */
   _handleClick() {
-    this.toggleChange.emit();
+    if (!this.disabled) {
+      this.toggleChange.emit();
 
-    if (!this.defaults.disableToggleValue) {
-      this.checked = !this.checked;
-      this._onChange(this.checked);
-      this.change.emit(new MatSlideToggleChange(this, this.checked));
+      if (!this.defaults.disableToggleValue) {
+        this.checked = !this.checked;
+        this._onChange(this.checked);
+        this.change.emit(new MatSlideToggleChange(this, this.checked));
+      }
     }
   }
 

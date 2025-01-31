@@ -3,29 +3,26 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Component} from '@angular/core';
-import {ConnectedPosition} from '@angular/cdk/overlay';
 import {CdkMenuModule} from '@angular/cdk/menu';
-import {CommonModule} from '@angular/common';
+import {ConnectedPosition} from '@angular/cdk/overlay';
 import {
+  CdkMenuContextExample,
+  CdkMenuInlineExample,
+  CdkMenuMenubarExample,
+  CdkMenuNestedContextExample,
   CdkMenuStandaloneMenuExample,
   CdkMenuStandaloneStatefulMenuExample,
-  CdkMenuMenubarExample,
-  CdkMenuInlineExample,
-  CdkMenuContextExample,
-  CdkMenuNestedContextExample,
 } from '@angular/components-examples/cdk/menu';
+import {ChangeDetectionStrategy, Component} from '@angular/core';
 
 @Component({
   templateUrl: 'cdk-menu-demo.html',
-  styleUrls: ['cdk-menu-demo.css'],
-  standalone: true,
+  styleUrl: 'cdk-menu-demo.css',
   imports: [
     CdkMenuModule,
-    CommonModule,
     CdkMenuStandaloneMenuExample,
     CdkMenuStandaloneStatefulMenuExample,
     CdkMenuMenubarExample,
@@ -33,6 +30,7 @@ import {
     CdkMenuContextExample,
     CdkMenuNestedContextExample,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CdkMenuDemo {
   customPosition = [

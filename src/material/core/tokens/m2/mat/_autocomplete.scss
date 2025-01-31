@@ -1,5 +1,6 @@
-@use '../../token-utils';
+@use '../../token-definition';
 @use '../../../theming/inspection';
+@use '../../../style/elevation';
 @use '../../../style/sass-utils';
 
 // The prefix used to generate the fully qualified name for tokens in this file.
@@ -8,7 +9,10 @@ $prefix: (mat, autocomplete);
 // Tokens that can't be configured through Angular Material's current theming API,
 // but may be in a future version of the theming API.
 @function get-unthemable-tokens() {
-  @return ();
+  @return (
+    container-shape: 4px,
+    container-elevation-shadow: elevation.get-box-shadow(8),
+  );
 }
 
 // Tokens that can be configured through Angular Material's color theming API.
@@ -33,8 +37,8 @@ $prefix: (mat, autocomplete);
 @function get-token-slots() {
   @return sass-utils.deep-merge-all(
       get-unthemable-tokens(),
-      get-color-tokens(token-utils.$placeholder-color-config),
-      get-typography-tokens(token-utils.$placeholder-typography-config),
-      get-density-tokens(token-utils.$placeholder-density-config)
+      get-color-tokens(token-definition.$placeholder-color-config),
+      get-typography-tokens(token-definition.$placeholder-typography-config),
+      get-density-tokens(token-definition.$placeholder-density-config)
   );
 }

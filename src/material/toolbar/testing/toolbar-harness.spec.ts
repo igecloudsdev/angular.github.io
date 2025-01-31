@@ -9,11 +9,10 @@ describe('MatToolbarHarness', () => {
   let fixture: ComponentFixture<ToolbarHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatToolbarModule],
-      declarations: [ToolbarHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatToolbarModule, ToolbarHarnessTest],
+    });
 
     fixture = TestBed.createComponent(ToolbarHarnessTest);
     fixture.detectChanges();
@@ -75,6 +74,7 @@ describe('MatToolbarHarness', () => {
       </mat-toolbar-row>
     </mat-toolbar>
   `,
+  imports: [MatToolbarModule],
 })
 class ToolbarHarnessTest {}
 

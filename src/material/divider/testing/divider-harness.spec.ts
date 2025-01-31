@@ -9,11 +9,10 @@ describe('MatLegacyButtonHarness', () => {
   let fixture: ComponentFixture<DividerHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatDividerModule],
-      declarations: [DividerHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatDividerModule, DividerHarnessTest],
+    });
 
     fixture = TestBed.createComponent(DividerHarnessTest);
     fixture.detectChanges();
@@ -43,5 +42,6 @@ describe('MatLegacyButtonHarness', () => {
     <mat-divider></mat-divider>
     <mat-divider inset vertical></mat-divider>
   `,
+  imports: [MatDividerModule],
 })
 class DividerHarnessTest {}

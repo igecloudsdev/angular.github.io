@@ -4,7 +4,6 @@ import {runfiles} from '@bazel/runfiles';
 import * as path from 'path';
 
 import {createLocalAngularPackageImporter} from '../../../../../tools/sass/local-sass-importer';
-import {pathToFileURL} from 'url';
 
 // Note: For Windows compatibility, we need to resolve the directory paths through runfiles
 // which are guaranteed to reside in the source tree.
@@ -13,17 +12,6 @@ const packagesDir = path.join(runfiles.resolveWorkspaceRelative('src/cdk/_index.
 
 const localPackageSassImporter = createLocalAngularPackageImporter(packagesDir);
 
-const mdcSassImporter = {
-  findFileUrl: (url: string) => {
-    if (url.toString().startsWith('@material')) {
-      return pathToFileURL(
-        path.join(runfiles.resolveWorkspaceRelative('./node_modules'), url),
-      ) as URL;
-    }
-    return null;
-  },
-};
-
 /** Transpiles given Sass content into CSS. */
 function transpile(content: string) {
   return compileString(
@@ -31,7 +19,6 @@ function transpile(content: string) {
         @use 'sass:list';
         @use 'sass:map';
         @use '../../../index' as mat;
-        @use '../../../../material-experimental/index' as matx;
 
         $internals: _mat-theming-internals-do-not-access;
 
@@ -39,7 +26,7 @@ function transpile(content: string) {
       `,
     {
       loadPaths: [testDir],
-      importers: [localPackageSassImporter, mdcSassImporter],
+      importers: [localPackageSassImporter],
     },
   ).css.toString();
 }
@@ -64,7 +51,7 @@ describe('theming definition api', () => {
   describe('define-theme', () => {
     it('should fill in defaults', () => {
       const css = transpile(`
-        $theme: matx.define-theme();
+        $theme: mat.define-theme();
         $data: map.get($theme, $internals);
         :root {
           --keys: #{map.keys($data)};
@@ -76,6 +63,8 @@ describe('theming definition api', () => {
           --color-tokens: #{list.length(map.get($data, color-tokens)) > 0};
           --typography-tokens: #{list.length(map.get($data, typography-tokens)) > 0};
           --density-tokens: #{list.length(map.get($data, density-tokens)) > 0};
+          --color-system-variables-prefix: #{map.get($data, color-system-variables-prefix)};
+          --typography-system-variables-prefix: #{map.get($data, typography-system-variables-prefix)};
         }
       `);
       const vars = getRootVars(css);
@@ -83,7 +72,10 @@ describe('theming definition api', () => {
         'theme-version',
         'theme-type',
         'palettes',
+        'color-system-variables-prefix',
         'color-tokens',
+        'font-definition',
+        'typography-system-variables-prefix',
         'typography-tokens',
         'density-scale',
         'density-tokens',
@@ -104,16 +96,17 @@ describe('theming definition api', () => {
       expect(vars['color-tokens']).toBe('true');
       expect(vars['typography-tokens']).toBe('true');
       expect(vars['density-tokens']).toBe('true');
+      expect(vars['typography-system-variables-prefix']).toBe('mat-sys');
+      expect(vars['color-system-variables-prefix']).toBe('mat-sys');
     });
 
     it('should customize colors', () => {
       const css = transpile(`
-        $theme: matx.define-theme((
+        $theme: mat.define-theme((
           color: (
             theme-type: dark,
-            primary: matx.$m3-yellow-palette,
-            secondary: matx.$m3-orange-palette,
-            tertiary: matx.$m3-red-palette,
+            primary: mat.$yellow-palette,
+            tertiary: mat.$red-palette,
           )
         ));
         $data: map.get($theme, $internals);
@@ -129,19 +122,19 @@ describe('theming definition api', () => {
         }
       `);
       const vars = getRootVars(css);
-      expect(vars['token-surface']).toBe('#1c1b1f');
+      expect(vars['token-surface']).toBe('#14140f');
       expect(vars['token-primary']).toBe('#cdcd00');
-      expect(vars['token-secondary']).toBe('#ffb95c');
+      expect(vars['token-secondary']).toBe('#cac8a5');
       expect(vars['token-tertiary']).toBe('#ffb4a8');
       expect(vars['palette-primary']).toBe('#7b7b00');
-      expect(vars['palette-secondary']).toBe('#a66a00');
+      expect(vars['palette-secondary']).toBe('#7a795a');
       expect(vars['palette-tertiary']).toBe('#ef0000');
       expect(vars['type']).toBe('dark');
     });
 
     it('should customize typography', () => {
       const css = transpile(`
-        $theme: matx.define-theme((
+        $theme: mat.define-theme((
           typography: (
             brand-family: Comic Sans,
             plain-family: Wingdings,
@@ -171,7 +164,7 @@ describe('theming definition api', () => {
 
     it('should customize density', () => {
       const css = transpile(`
-        $theme: matx.define-theme((
+        $theme: mat.define-theme((
           density: (
             scale: -2
           )
@@ -186,67 +179,67 @@ describe('theming definition api', () => {
     });
 
     it('should throw for invalid system config', () => {
-      expect(() => transpile(`$theme: matx.define-theme(5)`)).toThrowError(
+      expect(() => transpile(`$theme: mat.define-theme(5)`)).toThrowError(
         /\$config should be a configuration object\. Got: 5/,
       );
     });
 
     it('should throw for invalid color config', () => {
-      expect(() => transpile(`$theme: matx.define-theme((color: 5))`)).toThrowError(
+      expect(() => transpile(`$theme: mat.define-theme((color: 5))`)).toThrowError(
         /\$config\.color should be a color configuration object\. Got: 5/,
       );
     });
 
     it('should throw for invalid typography config', () => {
-      expect(() => transpile(`$theme: matx.define-theme((typography: 5))`)).toThrowError(
+      expect(() => transpile(`$theme: mat.define-theme((typography: 5))`)).toThrowError(
         /\$config\.typography should be a typography configuration object\. Got: 5/,
       );
     });
 
     it('should throw for invalid density config', () => {
-      expect(() => transpile(`$theme: matx.define-theme((density: 5))`)).toThrowError(
+      expect(() => transpile(`$theme: mat.define-theme((density: 5))`)).toThrowError(
         /\$config\.density should be a density configuration object\. Got: 5/,
       );
     });
 
     it('should throw for invalid config property', () => {
-      expect(() => transpile(`$theme: matx.define-theme((fake: 5))`)).toThrowError(
+      expect(() => transpile(`$theme: mat.define-theme((fake: 5))`)).toThrowError(
         /\$config has unexpected properties.*Found: fake/,
       );
     });
 
     it('should throw for invalid color property', () => {
-      expect(() => transpile(`$theme: matx.define-theme((color: (fake: 5)))`)).toThrowError(
+      expect(() => transpile(`$theme: mat.define-theme((color: (fake: 5)))`)).toThrowError(
         /\$config\.color has unexpected properties.*Found: fake/,
       );
     });
 
     it('should throw for invalid typography property', () => {
-      expect(() => transpile(`$theme: matx.define-theme((typography: (fake: 5)))`)).toThrowError(
+      expect(() => transpile(`$theme: mat.define-theme((typography: (fake: 5)))`)).toThrowError(
         /\$config\.typography has unexpected properties.*Found: fake/,
       );
     });
 
     it('should throw for invalid density property', () => {
-      expect(() => transpile(`$theme: matx.define-theme((density: (fake: 5)))`)).toThrowError(
+      expect(() => transpile(`$theme: mat.define-theme((density: (fake: 5)))`)).toThrowError(
         /\$config\.density has unexpected properties.*Found: fake/,
       );
     });
 
     it('should throw for invalid theme type', () => {
       expect(() =>
-        transpile(`$theme: matx.define-theme((color: (theme-type: black)))`),
+        transpile(`$theme: mat.define-theme((color: (theme-type: black)))`),
       ).toThrowError(/Expected \$config\.color.theme-type to be one of:.*Got: black/);
     });
 
     it('should throw for invalid palette', () => {
       expect(() =>
-        transpile(`$theme: matx.define-theme((color: (tertiary: mat.$red-palette)))`),
+        transpile(`$theme: mat.define-theme((color: (tertiary: mat.$m2-red-palette)))`),
       ).toThrowError(/Expected \$config\.color\.tertiary to be a valid M3 palette\. Got:/);
     });
 
     it('should throw for invalid density scale', () => {
-      expect(() => transpile(`$theme: matx.define-theme((density: (scale: 10)))`)).toThrowError(
+      expect(() => transpile(`$theme: mat.define-theme((density: (scale: 10)))`)).toThrowError(
         /Expected \$config\.density\.scale to be one of:.*Got: 10/,
       );
     });
@@ -255,7 +248,7 @@ describe('theming definition api', () => {
   describe('define-colors', () => {
     it('should omit non-color info', () => {
       const css = transpile(`
-        $theme: matx.define-colors();
+        $theme: mat.define-colors();
         $data: map.get($theme, $internals);
         :root {
           --keys: #{map.keys($data)};
@@ -266,6 +259,7 @@ describe('theming definition api', () => {
         'theme-version',
         'theme-type',
         'palettes',
+        'color-system-variables-prefix',
         'color-tokens',
       ]);
     });
@@ -274,21 +268,26 @@ describe('theming definition api', () => {
   describe('define-typography', () => {
     it('should omit non-typography info', () => {
       const css = transpile(`
-        $theme: matx.define-typography();
+        $theme: mat.define-typography();
         $data: map.get($theme, $internals);
         :root {
           --keys: #{map.keys($data)};
         }
       `);
       const vars = getRootVars(css);
-      expect(vars['keys'].split(', ')).toEqual(['theme-version', 'typography-tokens']);
+      expect(vars['keys'].split(', ')).toEqual([
+        'theme-version',
+        'font-definition',
+        'typography-system-variables-prefix',
+        'typography-tokens',
+      ]);
     });
   });
 
   describe('define-density', () => {
-    it('should omit non-color info', () => {
+    it('should omit non-density info', () => {
       const css = transpile(`
-        $theme: matx.define-density();
+        $theme: mat.define-density();
         $data: map.get($theme, $internals);
         :root {
           --keys: #{map.keys($data)};

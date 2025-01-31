@@ -7,8 +7,7 @@ import {MatTabsModule} from '@angular/material/tabs';
 @Component({
   selector: 'tab-group-stretched-example',
   templateUrl: 'tab-group-stretched-example.html',
-  styleUrls: ['tab-group-stretched-example.css'],
-  standalone: true,
+  styleUrl: 'tab-group-stretched-example.css',
   imports: [MatTabsModule],
 })
 export class TabGroupStretchedExample {}

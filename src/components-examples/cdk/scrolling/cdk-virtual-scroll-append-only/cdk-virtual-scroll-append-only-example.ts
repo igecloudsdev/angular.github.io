@@ -4,10 +4,9 @@ import {ScrollingModule} from '@angular/cdk/scrolling';
 /** @title Virtual scroll with view recycling disabled. */
 @Component({
   selector: 'cdk-virtual-scroll-append-only-example',
-  styleUrls: ['cdk-virtual-scroll-append-only-example.css'],
+  styleUrl: 'cdk-virtual-scroll-append-only-example.css',
   templateUrl: 'cdk-virtual-scroll-append-only-example.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
   imports: [ScrollingModule],
 })
 export class CdkVirtualScrollAppendOnlyExample {

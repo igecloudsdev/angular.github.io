@@ -12,8 +12,7 @@ import {MatCardModule} from '@angular/material/card';
 @Component({
   selector: 'slider-configurable-example',
   templateUrl: 'slider-configurable-example.html',
-  styleUrls: ['slider-configurable-example.css'],
-  standalone: true,
+  styleUrl: 'slider-configurable-example.css',
   imports: [
     MatCardModule,
     MatFormFieldModule,

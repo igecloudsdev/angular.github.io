@@ -8,8 +8,6 @@ Chips are always used inside a container. To create chips, start with a `<mat-ch
 
 By default, `<mat-chip>` renders a chip with Material Design styles applied. For a chip with no styles applied, use `<mat-basic-chip>`.
 
-*Hint: `<mat-basic-chip>` receives the `mat-mdc-basic-chip` CSS class in addition to the `mat-mdc-chip` class.*
-
 #### Disabled appearance
 
 Although `<mat-chip>` is not interactive, you can set the `disabled` Input to give it disabled appearance.
@@ -42,9 +40,16 @@ Chips are always used inside a container. To create chips connected to an input 
 
 <!-- example(chips-input) -->
 
+### Use with `@angular/forms`
+Chips are compatible with `@angular/forms` and supports both `FormsModule`
+and `ReactiveFormsModule`.
+
+<!-- example(chips-template-form) -->
+<!-- example(chips-reactive-form) -->
+
 #### Disabled `<mat-chip-row>`
 
-Use the `disabled` Input to disable a `<mat-chip-row>`. This  gives the `<mat-chip-row>` a disabled appearance and prevents the user from interacting with it.
+Use the `disabled` Input to disable a `<mat-chip-row>`. This gives the `<mat-chip-row>` a disabled appearance and prevents the user from interacting with it.
 
 ```html
 <mat-chip-row disabled>Orange</mat-chip-row>
@@ -58,11 +63,12 @@ Users can press delete to remove a chip. Pressing delete triggers the `removed` 
 
 #### Autocomplete
 
-An example of chip input with autocomplete.
+A `<mat-chip-grid>` can be combined with `<mat-autocomplete>` to enable free-form chip input with suggestions.
 
 <!-- example(chips-autocomplete) -->
 
 ### Icons
+
 You can add icons to chips to identify entities (like individuals) and provide additional functionality.
 
 #### Adding up to two icons with content projection
@@ -94,11 +100,12 @@ See the [accessibility](#accessibility) section for best practices on implementi
 
 ### Orientation
 
-By default, chips are displayed horizontally. To stack chips vertically, apply the `mat-mdc-chip-set-stacked` class to `<mat-chip-set>`, `<mat-chip-listbox>` or `<mat-chip-grid>`. 
+By default, chips are displayed horizontally. To stack chips vertically, apply the `mat-mdc-chip-set-stacked` class to `<mat-chip-set>`, `<mat-chip-listbox>` or `<mat-chip-grid>`.
 
 <!-- example(chips-stacked) -->
 
 ### Specifying global configuration defaults
+
 Use the `MAT_CHIPS_DEFAULT_OPTIONS` token to specify default options for the chips module.
 
 ```html
@@ -113,10 +120,6 @@ Use the `MAT_CHIPS_DEFAULT_OPTIONS` token to specify default options for the chi
   ]
 })
 ```
-
-### Theming
-
-By default, chips use the primary color. Specify the `color` property to change the color to `accent` or `warn`.
 
 ### Interaction Patterns
 
@@ -141,14 +144,15 @@ The chips components support 3 user interaction patterns, each with its own cont
 ```html
 <mat-form-field>
   <mat-chip-grid #myChipGrid [(ngModel)]="mySelection"
-  aria-label="enter sandwich fillings">
-    <mat-chip-row *ngFor="let filling of fillings"
-                 (removed)="remove(filling)">
-      {{filling.name}}
-      <button matChipRemove>
-        <mat-icon>cancel</mat-icon>
-      </button>
-    </mat-chip-row>
+    aria-label="enter sandwich fillings">
+    @for (filling of fillings; track filling) {
+      <mat-chip-row (removed)="remove(filling)">
+        {{filling.name}}
+        <button matChipRemove>
+          <mat-icon>cancel</mat-icon>
+        </button>
+      </mat-chip-row>
+    }
     <input [matChipInputFor]="myChipGrid"
            [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
            (matChipInputTokenEnd)="add($event)" />
@@ -189,7 +193,5 @@ Always apply MatChipRemove to a `<button>` element, never a `<mat-icon>` element
 When using MatChipListbox, never nest other interactive controls inside of the `<mat-chip-option>` element. Nesting controls degrades the experience for assistive technology users.
 
 By default, `MatChipListbox` displays a checkmark to identify selected items. While you can hide the checkmark indicator for single-selection via `hideSingleSelectionIndicator`, this makes the component less accessible by making it harder or impossible for users to visually identify selected items.
-
-When using `MatChipRemove`, you should always communicate removals for assistive technology. One way to accomplish this is by sending a message with `LiveAnnouncer`. Otherwise, removing a chip may only be communicated visually.
 
 When a chip is editable, provide instructions to assistive technology how to edit the chip using a keyboard. One way to accomplish this is adding an `aria-description` attribute with instructions to press enter to edit the chip.

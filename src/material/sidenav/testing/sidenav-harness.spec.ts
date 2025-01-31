@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, signal} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {HarnessLoader, parallel} from '@angular/cdk/testing';
 import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
@@ -16,11 +16,10 @@ describe('MatSidenavHarness', () => {
     let fixture: ComponentFixture<DrawerHarnessTest>;
     let loader: HarnessLoader;
 
-    beforeEach(async () => {
-      await TestBed.configureTestingModule({
-        imports: [MatSidenavModule, NoopAnimationsModule],
-        declarations: [DrawerHarnessTest],
-      }).compileComponents();
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        imports: [MatSidenavModule, NoopAnimationsModule, DrawerHarnessTest],
+      });
 
       fixture = TestBed.createComponent(DrawerHarnessTest);
       fixture.detectChanges();
@@ -45,7 +44,7 @@ describe('MatSidenavHarness', () => {
       expect(await drawers[1].isOpen()).toBe(false);
       expect(await drawers[2].isOpen()).toBe(true);
 
-      fixture.componentInstance.threeOpened = false;
+      fixture.componentInstance.threeOpened.set(false);
       fixture.detectChanges();
 
       expect(await drawers[0].isOpen()).toBe(false);
@@ -109,11 +108,10 @@ describe('MatSidenavHarness', () => {
     let fixture: ComponentFixture<SidenavHarnessTest>;
     let loader: HarnessLoader;
 
-    beforeEach(async () => {
-      await TestBed.configureTestingModule({
-        imports: [MatSidenavModule, NoopAnimationsModule],
-        declarations: [SidenavHarnessTest],
-      }).compileComponents();
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        imports: [MatSidenavModule, NoopAnimationsModule, SidenavHarnessTest],
+      });
 
       fixture = TestBed.createComponent(SidenavHarnessTest);
       fixture.detectChanges();
@@ -174,13 +172,14 @@ describe('MatSidenavHarness', () => {
     </mat-drawer-container>
 
     <mat-drawer-container>
-      <mat-drawer id="three" mode="push" [opened]="threeOpened">Three</mat-drawer>
+      <mat-drawer id="three" mode="push" [opened]="threeOpened()">Three</mat-drawer>
       <mat-drawer-content>Content</mat-drawer-content>
     </mat-drawer-container>
   `,
+  imports: [MatSidenavModule],
 })
 class DrawerHarnessTest {
-  threeOpened = true;
+  threeOpened = signal(true);
 }
 
 @Component({
@@ -196,5 +195,6 @@ class DrawerHarnessTest {
       <mat-sidenav-content>Content</mat-sidenav-content>
     </mat-sidenav-container>
   `,
+  imports: [MatSidenavModule],
 })
 class SidenavHarnessTest {}

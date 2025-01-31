@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {
@@ -16,7 +16,7 @@ import {DialogHarnessFilters} from './dialog-harness-filters';
 import {DialogRole} from '@angular/material/dialog';
 
 /** Selectors for different sections of the mat-dialog that can contain user content. */
-export const enum MatDialogSection {
+export enum MatDialogSection {
   TITLE = '.mat-mdc-dialog-title',
   CONTENT = '.mat-mdc-dialog-content',
   ACTIONS = '.mat-mdc-dialog-actions',

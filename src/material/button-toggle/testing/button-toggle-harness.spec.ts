@@ -1,7 +1,7 @@
-import {Component} from '@angular/core';
-import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {HarnessLoader} from '@angular/cdk/testing';
 import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
+import {Component} from '@angular/core';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatButtonToggleHarness} from './button-toggle-harness';
 
@@ -9,11 +9,10 @@ describe('MatButtonToggleHarness', () => {
   let fixture: ComponentFixture<ButtonToggleHarnessTest>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MatButtonToggleModule],
-      declarations: [ButtonToggleHarnessTest],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [MatButtonToggleModule, ButtonToggleHarnessTest],
+    });
 
     fixture = TestBed.createComponent(ButtonToggleHarnessTest);
     fixture.detectChanges();
@@ -57,6 +56,14 @@ describe('MatButtonToggleHarness', () => {
   it('should get the toggle disabled state', async () => {
     const [enabledToggle, disabledToggle] = await loader.getAllHarnesses(MatButtonToggleHarness);
     expect(await enabledToggle.isDisabled()).toBe(false);
+    expect(await disabledToggle.isDisabled()).toBe(true);
+  });
+
+  it('should get the disabled state for an interactive disabled button', async () => {
+    fixture.componentInstance.disabledInteractive = true;
+    fixture.changeDetectorRef.markForCheck();
+
+    const disabledToggle = (await loader.getAllHarnesses(MatButtonToggleHarness))[1];
     expect(await disabledToggle.isDisabled()).toBe(true);
   });
 
@@ -104,6 +111,7 @@ describe('MatButtonToggleHarness', () => {
 
   it('should toggle the button value', async () => {
     fixture.componentInstance.disabled = false;
+    fixture.changeDetectorRef.markForCheck();
     const [checkedToggle, uncheckedToggle] = await loader.getAllHarnesses(MatButtonToggleHarness);
     await checkedToggle.toggle();
     await uncheckedToggle.toggle();
@@ -113,6 +121,7 @@ describe('MatButtonToggleHarness', () => {
 
   it('should check the button toggle', async () => {
     fixture.componentInstance.disabled = false;
+    fixture.changeDetectorRef.markForCheck();
     const [checkedToggle, uncheckedToggle] = await loader.getAllHarnesses(MatButtonToggleHarness);
     await checkedToggle.check();
     await uncheckedToggle.check();
@@ -122,6 +131,7 @@ describe('MatButtonToggleHarness', () => {
 
   it('should uncheck the button toggle', async () => {
     fixture.componentInstance.disabled = false;
+    fixture.changeDetectorRef.markForCheck();
     const [checkedToggle, uncheckedToggle] = await loader.getAllHarnesses(MatButtonToggleHarness);
     await checkedToggle.uncheck();
     await uncheckedToggle.uncheck();
@@ -139,11 +149,14 @@ describe('MatButtonToggleHarness', () => {
         checked>First</mat-button-toggle>
       <mat-button-toggle
         [disabled]="disabled"
+        [disabledInteractive]="disabledInteractive"
         aria-labelledby="second-label"
         appearance="legacy">Second</mat-button-toggle>
       <span id="second-label">Second toggle</span>
   `,
+  imports: [MatButtonToggleModule],
 })
 class ButtonToggleHarnessTest {
   disabled = true;
+  disabledInteractive = false;
 }

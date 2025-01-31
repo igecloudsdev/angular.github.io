@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {normalize, logging, workspaces} from '@angular-devkit/core';
@@ -39,7 +39,7 @@ const defaultCustomThemeFilename = 'custom-theme.scss';
 /** Add pre-built styles to the main project style file. */
 export function addThemeToAppStyles(options: Schema): Rule {
   return (host: Tree, context: SchematicContext) => {
-    const themeName = options.theme || 'indigo-pink';
+    const themeName = options.theme || 'azure-blue';
     return themeName === 'custom'
       ? insertCustomTheme(options.project, host, context.logger)
       : insertPrebuiltTheme(options.project, themeName, context.logger);

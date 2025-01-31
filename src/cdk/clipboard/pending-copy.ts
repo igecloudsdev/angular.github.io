@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 /**
@@ -22,7 +22,10 @@
 export class PendingCopy {
   private _textarea: HTMLTextAreaElement | undefined;
 
-  constructor(text: string, private readonly _document: Document) {
+  constructor(
+    text: string,
+    private readonly _document: Document,
+  ) {
     const textarea = (this._textarea = this._document.createElement('textarea'));
     const styles = textarea.style;
 
